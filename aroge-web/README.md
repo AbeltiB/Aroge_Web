@@ -1,36 +1,59 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Aroge Backoffice Admin Dashboard
 
-## Getting Started
+## Folder tree
 
-First, run the development server:
-
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+```text
+src/
+  app/
+    (auth)/login/page.tsx
+    (admin)/admin/{dashboard,users,catalog,orders,disputes,reports,authorization,notifications,settings,audit-log}/page.tsx
+    api/auth/{request-code,verify-code,refresh,logout}/route.ts
+  entities/admin.ts
+  features/layout/admin-shell.tsx
+  shared/
+    api/client.ts
+    config/env.ts
+    ui/cards.tsx
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## RBAC + ABAC data model
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **roles**: id, name, description, version, archived.
+- **permissions**: resource + action keys (e.g. `orders.refund`).
+- **assignments**: user-role + optional direct permissions.
+- **policies**: ABAC effect + condition expression JSON, evaluated with deny-by-default.
+- **audit_log**: immutable event store capturing actor, target, diff, trace id, timestamp.
+- **simulator**: evaluates role permissions then ABAC policies and returns allow/deny reason chain.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Seed data example
 
-## Learn More
+- Roles: `SuperAdmin`, `RiskAnalyst`, `SupportAgent`, `FinanceOps`, `CatalogModerator`.
+- Permissions: `orders.read`, `orders.refund`, `disputes.resolve`, `payouts.release`, `catalog.moderate`.
+- Policies:
+  - `allow disputes.resolve when resource.region == user.region`
+  - `allow orders.refund when amount <= user.maxRefundAmount`
+  - `deny catalog.edit when category not in user.assignedCategories`
 
-To learn more about Next.js, take a look at the following resources:
+## Run instructions
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+1. `npm install`
+2. Create `.env.local`:
+   - `NEXT_PUBLIC_HONO_API_BASE_URL=https://your-hono-api`
+   - `NEXT_PUBLIC_SENTRY_DSN=...`
+3. `npm run dev`
+4. Open `http://localhost:3000/login`
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Security model
 
-## Deploy on Vercel
+- Session cookies are HTTP-only and proxied via Next route handlers.
+- CSRF token header should be enforced by Hono auth middleware.
+- Trace IDs are passed per request (`x-trace-id`) for observability.
+- Privileged actions must enforce step-up verification + audit logs.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Wireframes (textual)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Login**: phone input, OTP request, code verify, resend countdown, error banner.
+- **Dashboard**: KPI cards, risk feed, draggable widgets, date filters, drill-down links.
+- **Users**: unified grid + saved filters, detail side panel, admin actions.
+- **Authorization**: role editor, permission matrix, ABAC policy composer, effective-access simulator.
+- **Disputes**: SLA queue, case timeline, evidence viewer, mediator actions.
