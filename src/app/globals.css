@@ -1,0 +1,64 @@
+@import "tailwindcss";
+
+:root {
+  --brand:        #1f7a5a;
+  --brand-dark:   #174d39;
+  --brand-light:  #e9f3ee;
+  --canvas:       #f3efe7;
+  --canvas-deep:  #e8e4dc;
+  --value:        #c89b3c;
+  --value-dark:   #7a5e1a;
+  --value-light:  #faeeda;
+  --action:       #B85C2A;
+  --action-dark:  #7a2e10;
+  --action-light: #faeada;
+  --ink:          #1a1a1a;
+  --ink-mid:      #555555;
+  --ink-light:    #999999;
+  --surface:      #faf9f5;
+  --border:       #e8e4dc;
+  --white:        #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--canvas);
+  color: var(--ink);
+  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  font-size: 14px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--canvas-deep); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #ccc8c0; }
+
+/* Focus ring */
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Reset button */
+button { cursor: pointer; font-family: inherit; }
+
+/* Reset input */
+input, select, textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
