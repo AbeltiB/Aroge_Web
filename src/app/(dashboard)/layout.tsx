@@ -11,7 +11,7 @@ import {
   Percent, Truck, Wallet, Landmark,
   Bell, BadgeCheck, Flag,
   PalmtreeIcon,
-  History, Star,
+  History, Star, UserCog,
   LogOut,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -69,6 +69,12 @@ const NAV_SECTIONS = [
     items: [
       { href: '/analytics', label: 'Reports', Icon: BarChart3 },
       { href: '/audit-log', label: 'Audit Log', Icon: History },
+    ],
+  },
+  {
+    label: 'PLATFORM',
+    items: [
+      { href: '/admins', label: 'Admins', Icon: UserCog },
     ],
   },
 ]
