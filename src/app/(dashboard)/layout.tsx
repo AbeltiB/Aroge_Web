@@ -11,7 +11,7 @@ import {
   Percent, Truck, Wallet, Landmark,
   Bell, BadgeCheck, Flag,
   PalmtreeIcon,
-  History,
+  History, Star,
   LogOut,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -35,6 +35,7 @@ const NAV_SECTIONS = [
     items: [
       { href: '/orders', label: 'Orders', Icon: ShoppingBag },
       { href: '/disputes', label: 'Disputes', Icon: ShieldCheck },
+      { href: '/reviews', label: 'Reviews', Icon: Star },
       { href: '/reports', label: 'Reports', Icon: Flag },
     ],
   },
