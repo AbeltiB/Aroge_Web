@@ -16,11 +16,21 @@ interface DisputeOrder {
 
 interface DisputesRes { items: DisputeOrder[]; total: number }
 
+interface DisputeMessage {
+  id: string
+  body: string
+  mediaKey: string | null
+  createdAt: string
+  senderId: string
+  sender: { id: string; name: string }
+}
+
 export default function DisputesPage() {
   const [data, setData] = useState<DisputesRes | null>(null)
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<DisputeOrder | null>(null)
   const [acting, setActing] = useState(false)
+  const [messages, setMessages] = useState<DisputeMessage[] | null>(null)
 
   function load() {
     setLoading(true)
@@ -31,6 +41,14 @@ export default function DisputesPage() {
   }
 
   useEffect(() => { load() }, [])
+
+  useEffect(() => {
+    if (!selected) { setMessages(null); return }
+    setMessages(null)
+    api.get<DisputeMessage[]>(`/admin/orders/${selected.id}/messages`).then((res) => {
+      if (res.success) setMessages(res.data)
+    })
+  }, [selected])
 
   async function act(action: 'release' | 'refund') {
     if (!selected) return
@@ -92,6 +110,31 @@ export default function DisputesPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'rgba(31,122,90,0.6)' }}>
+                  Conversation
+                </p>
+                {messages === null ? (
+                  <p className="text-xs" style={{ color: '#888' }}>Loading…</p>
+                ) : messages.length === 0 ? (
+                  <p className="text-xs" style={{ color: '#888' }}>No messages between buyer and seller.</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-64 overflow-y-auto">
+                    {messages.map((m) => {
+                      const isBuyer = m.senderId === selected.buyer.id
+                      return (
+                        <div key={m.id} className="text-xs rounded-lg p-2" style={{ background: isBuyer ? '#f3efe7' : '#e6f0eb' }}>
+                          <span className="font-medium" style={{ color: isBuyer ? '#3d2a10' : '#1f7a5a' }}>
+                            {m.sender.name}:
+                          </span>{' '}
+                          <span style={{ color: '#1a3028' }}>{m.mediaKey ? '📷 Photo' : m.body}</span>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 pt-2">

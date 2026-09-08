@@ -38,6 +38,15 @@ interface OrderDetail {
   escrowEvents: { id: string; eventType: string; note: string | null; amount: number; createdAt: string }[]
 }
 
+interface OrderMessage {
+  id: string
+  body: string
+  mediaKey: string | null
+  createdAt: string
+  senderId: string
+  sender: { id: string; name: string }
+}
+
 const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
   PENDING_PAYMENT: { bg: '#faeeda', color: '#3d2a10' },
   PAID_ESCROWED: { bg: '#e6f0eb', color: '#1f7a5a' },
@@ -53,12 +62,16 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [acting, setActing] = useState(false)
+  const [messages, setMessages] = useState<OrderMessage[] | null>(null)
 
   function load() {
     setLoading(true)
     api.get<OrderDetail>(`/admin/orders/${params.id}`).then((res) => {
       if (res.success) setOrder(res.data)
       setLoading(false)
+    })
+    api.get<OrderMessage[]>(`/admin/orders/${params.id}/messages`).then((res) => {
+      if (res.success) setMessages(res.data)
     })
   }
 
@@ -212,6 +225,32 @@ export default function OrderDetailPage() {
             <span className="ml-2" style={{ color: '#888' }}>{new Date(ev.createdAt).toLocaleString()}</span>
           </div>
         ))}
+      </div>
+
+      <div className="bg-white rounded-xl shadow-sm p-5 space-y-2">
+        <h3 className="font-semibold" style={{ color: '#1a3028' }}>Conversation</h3>
+        {messages === null ? (
+          <p className="text-sm" style={{ color: '#888' }}>Loading…</p>
+        ) : messages.length === 0 ? (
+          <p className="text-sm" style={{ color: '#888' }}>No messages between buyer and seller for this order.</p>
+        ) : (
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {messages.map((m) => {
+              const isBuyer = m.senderId === order.buyer.id
+              return (
+                <div key={m.id} className="text-sm rounded-lg p-2.5" style={{ background: isBuyer ? '#f3efe7' : '#e6f0eb' }}>
+                  <div className="flex justify-between items-baseline mb-0.5">
+                    <span className="font-medium text-xs" style={{ color: isBuyer ? '#3d2a10' : '#1f7a5a' }}>
+                      {m.sender.name} {isBuyer ? '(buyer)' : '(seller)'}
+                    </span>
+                    <span className="text-xs" style={{ color: '#888' }}>{new Date(m.createdAt).toLocaleString()}</span>
+                  </div>
+                  <p style={{ color: '#1a3028' }}>{m.mediaKey ? '📷 Photo' : m.body}</p>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </div>
 
       {order.orderStatus === 'DISPUTED' && (
