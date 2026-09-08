@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
-import { formatETB } from 'aroge-sdk'
+import { formatETB } from '@arogenpm/sdk'
 
 interface PaymentRow {
   id: string

@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { api } from '../../../lib/api'
-import { formatETB } from 'aroge-sdk'
-import type { Order } from 'aroge-sdk'
+import { formatETB } from '@arogenpm/sdk'
+import type { Order } from '@arogenpm/sdk'
 
 interface OrdersRes { items: Order[]; total: number }
 

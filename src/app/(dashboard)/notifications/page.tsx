@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Bell, Send, Users, User, CheckCircle, Clock, XCircle } from 'lucide-react'
 import { api } from '../../../lib/api'
-import type { AdminBroadcast } from 'aroge-sdk'
+import type { AdminBroadcast } from '@arogenpm/sdk'
 
 const CHANNEL_OPTIONS = [
   { id: 'IN_APP', label: 'In-App' },

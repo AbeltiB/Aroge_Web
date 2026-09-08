@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { JwtAdminPayload } from 'aroge-sdk'
+import type { JwtAdminPayload } from '@arogenpm/sdk'
 
 interface AuthState {
   admin: (JwtAdminPayload & { name: string }) | null

@@ -1,4 +1,4 @@
-import type { ApiResponse } from 'aroge-sdk'
+import type { ApiResponse } from '@arogenpm/sdk'
 import { authStorage } from './auth'
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000/api/v1'

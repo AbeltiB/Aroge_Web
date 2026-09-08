@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
-import type { Business } from 'aroge-sdk'
+import type { Business } from '@arogenpm/sdk'
 
 interface BusinessesRes { items: (Business & { rep: { id: string; name: string; telegramId: string } })[]; total: number }
 

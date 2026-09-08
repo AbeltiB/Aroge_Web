@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
-import { VERIFY_ET_BANKS, VERIFY_ET_BANK_LABELS, type VerifyEtBank } from 'aroge-sdk'
+import { VERIFY_ET_BANKS, VERIFY_ET_BANK_LABELS, type VerifyEtBank } from '@arogenpm/sdk'
 
 interface BankAccount {
   id: string

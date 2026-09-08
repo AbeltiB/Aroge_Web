@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
-import { formatETB } from 'aroge-sdk'
-import type { Listing } from 'aroge-sdk'
+import { formatETB } from '@arogenpm/sdk'
+import type { Listing } from '@arogenpm/sdk'
 
 interface ListingsRes { items: (Listing & { seller?: { id: string; name: string } })[]; total: number }
 

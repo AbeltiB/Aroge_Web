@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
-import type { User } from 'aroge-sdk'
+import type { User } from '@arogenpm/sdk'
 
 interface UsersRes { items: User[]; total: number; page: number }
 

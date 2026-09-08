@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api } from '../../../../lib/api'
-import { formatETB } from 'aroge-sdk'
+import { formatETB } from '@arogenpm/sdk'
 
 interface OrderDetail {
   id: string

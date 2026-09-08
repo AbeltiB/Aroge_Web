@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
-import type { Category } from 'aroge-sdk'
+import type { Category } from '@arogenpm/sdk'
 
 export default function CategoriesPage() {
   const [cats, setCats] = useState<Category[]>([])

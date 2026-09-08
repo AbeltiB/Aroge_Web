@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { PalmtreeIcon, PowerOff, RefreshCw, Clock } from 'lucide-react'
 import { api } from '../../../lib/api'
-import type { HolidayModeLog } from 'aroge-sdk'
+import type { HolidayModeLog } from '@arogenpm/sdk'
 
 interface ActiveSeller {
   id: string

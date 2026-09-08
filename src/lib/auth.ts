@@ -1,4 +1,4 @@
-import type { JwtAdminPayload } from 'aroge-sdk'
+import type { JwtAdminPayload } from '@arogenpm/sdk'
 
 const TOKEN_KEY = 'aroge_admin_token'
 const USER_KEY = 'aroge_admin_user'

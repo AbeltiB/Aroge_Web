@@ -4,9 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '../../../lib/api'
 import { useAuthStore } from '../../../store/auth.store'
-import type { JwtAdminPayload, TelegramAuthInput } from 'aroge-sdk'
+import type { JwtAdminPayload, TelegramAuthInput } from '@arogenpm/sdk'
 
-const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'aroge_telegram_bot'
+const BOT_USERNAME = process.env.NEXT_PUBLIC_TELEGRAM_BOT_USERNAME ?? 'aroge_ecommerce_bot'
 
 declare global {
   interface Window {
