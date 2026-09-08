@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '../../store/auth.store'
 import {
-  LayoutDashboard, Package, Tag,
+  LayoutDashboard, Package, Tag, Boxes,
   ShoppingBag, ShieldCheck,
   Users, Building2,
   BarChart3,
@@ -27,6 +27,7 @@ const NAV_SECTIONS = [
     label: 'MARKETPLACE',
     items: [
       { href: '/listings', label: 'Listings', Icon: Package },
+      { href: '/bundles', label: 'Bundles', Icon: Boxes },
       { href: '/categories', label: 'Categories', Icon: Tag },
     ],
   },
