@@ -1,23 +1,64 @@
 @import "tailwindcss";
 
-:root {
-  --brand:        #1f7a5a;
-  --brand-dark:   #174d39;
-  --brand-light:  #e9f3ee;
-  --canvas:       #f3efe7;
-  --canvas-deep:  #e8e4dc;
-  --value:        #c89b3c;
-  --value-dark:   #7a5e1a;
-  --value-light:  #faeeda;
-  --action:       #B85C2A;
-  --action-dark:  #7a2e10;
-  --action-light: #faeada;
-  --ink:          #1a1a1a;
-  --ink-mid:      #555555;
-  --ink-light:    #999999;
-  --surface:      #faf9f5;
-  --border:       #e8e4dc;
-  --white:        #ffffff;
+@theme {
+  /* Brand — deep teal-green, the primary action/identity color */
+  --color-brand-50:  #eef7f3;
+  --color-brand-100: #d7ece2;
+  --color-brand-200: #b0d9c8;
+  --color-brand-300: #7fbfa4;
+  --color-brand-400: #4a9d80;
+  --color-brand-500: #1f7a5a;
+  --color-brand-600: #196349;
+  --color-brand-700: #174d39;
+  --color-brand-800: #123a2b;
+  --color-brand-900: #0d291f;
+
+  /* Value — warm gold, used for money/value figures */
+  --color-value-50:  #fdf7ea;
+  --color-value-100: #faeeda;
+  --color-value-200: #f0dcae;
+  --color-value-300: #e2c17c;
+  --color-value-400: #d4ac57;
+  --color-value-500: #c89b3c;
+  --color-value-600: #a67d2d;
+  --color-value-700: #7a5e1a;
+  --color-value-800: #5c4714;
+  --color-value-900: #3d2f0d;
+
+  /* Action — terracotta, used for warnings/attention/destructive-adjacent states */
+  --color-action-50:  #fdf1ea;
+  --color-action-100: #faeada;
+  --color-action-200: #f0cbae;
+  --color-action-300: #e2a67c;
+  --color-action-400: #cf7f4f;
+  --color-action-500: #b85c2a;
+  --color-action-600: #984a20;
+  --color-action-700: #7a2e10;
+  --color-action-800: #5c2109;
+  --color-action-900: #3d1706;
+
+  /* Canvas — warm neutral, the page background family */
+  --color-canvas-50:  #fdfcfa;
+  --color-canvas-100: #f8f6f1;
+  --color-canvas-200: #f3efe7;
+  --color-canvas-300: #e8e4dc;
+  --color-canvas-400: #d9d4c8;
+  --color-canvas-500: #c4beaf;
+
+  /* Ink — text grays */
+  --color-ink-900: #1a1a1a;
+  --color-ink-700: #3d3d3d;
+  --color-ink-500: #5c5c5c;
+  --color-ink-400: #78766f;
+  --color-ink-300: #9a9890;
+  --color-ink-200: #c7c4bb;
+
+  --font-sans: var(--font-geist-sans), -apple-system, "Helvetica Neue", sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --shadow-card: 0 1px 2px rgba(13, 41, 31, 0.04), 0 2px 8px rgba(13, 41, 31, 0.06);
+  --shadow-card-hover: 0 2px 4px rgba(13, 41, 31, 0.06), 0 8px 24px rgba(13, 41, 31, 0.10);
+  --shadow-popover: 0 8px 16px rgba(13, 41, 31, 0.08), 0 16px 40px rgba(13, 41, 31, 0.12);
 }
 
 *,
@@ -34,28 +75,36 @@ body {
 }
 
 body {
-  background: var(--canvas);
-  color: var(--ink);
-  font-family: -apple-system, "Helvetica Neue", sans-serif;
+  background: var(--color-canvas-200);
+  color: var(--color-ink-900);
+  font-family: var(--font-sans);
   font-size: 14px;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-brand-200);
+  color: var(--color-brand-900);
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--canvas-deep); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #ccc8c0; }
+::-webkit-scrollbar-thumb { background: var(--color-canvas-400); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
+::-webkit-scrollbar-thumb:hover { background: var(--color-ink-200); background-clip: padding-box; }
 
 /* Focus ring */
 :focus-visible {
-  outline: 2px solid var(--brand);
+  outline: 2px solid var(--color-brand-500);
   outline-offset: 2px;
+  border-radius: 4px;
 }
 
 /* Reset button */
 button { cursor: pointer; font-family: inherit; }
+button:disabled { cursor: not-allowed; }
 
 /* Reset input */
 input, select, textarea {

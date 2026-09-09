@@ -9,6 +9,7 @@ import {
   Building2, RefreshCw, ArrowRight,
 } from 'lucide-react'
 import Link from 'next/link'
+import { PageHeader, Button, StatCard, Card, CardHeader, CardTitle, StatusBadge, LoadingState } from '../../../components/ui'
 
 interface DashboardStats {
   listings: { active: number; draft: number; newToday: number; total: number }
@@ -27,49 +28,8 @@ interface DashboardStats {
   }>
 }
 
-const STATUS_COLOR: Record<string, string> = {
-  PENDING_PAYMENT: '#faeeda',
-  PAID_ESCROWED: '#e6f0eb',
-  IN_TRANSIT: '#e6f0eb',
-  COMPLETED: '#e6f0eb',
-  DISPUTED: 'rgba(184,92,42,0.12)',
-  REFUNDED: '#f5f5f5',
-}
-const STATUS_TEXT: Record<string, string> = {
-  PENDING_PAYMENT: '#3d2a10',
-  PAID_ESCROWED: '#174d39',
-  IN_TRANSIT: '#174d39',
-  COMPLETED: '#174d39',
-  DISPUTED: '#B85C2A',
-  REFUNDED: '#888',
-}
-
-function StatCard({
-  label, value, sub, icon: Icon, accent, href,
-}: {
-  label: string; value: string | number; sub?: string
-  icon: React.ElementType; accent: string; href?: string
-}) {
-  const content = (
-    <div className="bg-white rounded-xl p-5 shadow-sm border border-transparent hover:border-opacity-30 transition-all group" style={{ borderColor: accent }}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wide" style={{ color: 'rgba(31,122,90,0.45)' }}>{label}</p>
-          <p className="text-3xl font-black mt-1 tracking-tight" style={{ color: '#1a3028' }}>{value}</p>
-          {sub && <p className="text-xs mt-1" style={{ color: '#888' }}>{sub}</p>}
-        </div>
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${accent}18` }}>
-          <Icon size={18} style={{ color: accent }} />
-        </div>
-      </div>
-      {href && (
-        <div className="mt-3 flex items-center gap-1 text-xs font-medium group-hover:gap-2 transition-all" style={{ color: accent }}>
-          View all <ArrowRight size={11} />
-        </div>
-      )}
-    </div>
-  )
-  return href ? <Link href={href}>{content}</Link> : content
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs font-bold uppercase tracking-widest mb-3 text-ink-400">{children}</p>
 }
 
 export default function DashboardPage() {
@@ -134,141 +94,127 @@ export default function DashboardPage() {
 
   useEffect(() => { load() }, [])
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="flex items-center gap-3" style={{ color: 'rgba(31,122,90,0.45)' }}>
-          <RefreshCw size={16} className="animate-spin" />
-          <span className="text-sm">Loading dashboard…</span>
-        </div>
-      </div>
-    )
-  }
+  if (loading || !stats) return <LoadingState label="Loading dashboard…" />
 
-  const s = stats!
+  const s = stats
 
   return (
     <div className="space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-black" style={{ color: '#1a3028' }}>Dashboard</h1>
-          <p className="text-sm mt-0.5" style={{ color: 'rgba(31,122,90,0.5)' }}>
-            Live operational view · Updated {lastRefresh.toLocaleTimeString()}
-          </p>
-        </div>
-        <button
-          onClick={load}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all hover:opacity-80"
-          style={{ background: '#1f7a5a', color: '#f3efe7' }}
-        >
-          <RefreshCw size={14} />
-          Refresh
-        </button>
-      </div>
+      <PageHeader
+        title="Dashboard"
+        subtitle={`Live operational view · Updated ${lastRefresh.toLocaleTimeString()}`}
+        actions={
+          <Button variant="primary" size="sm" onClick={load}>
+            <RefreshCw size={13} />
+            Refresh
+          </Button>
+        }
+      />
 
-      {/* Revenue row */}
       <section>
-        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(31,122,90,0.4)' }}>Revenue</p>
-        <div className="grid grid-cols-3 gap-4">
-          <StatCard label="Total GMV" value={formatETB(s.revenue.gmvTotal)} sub="All completed orders" icon={TrendingUp} accent="#c89b3c" href="/analytics" />
-          <StatCard label="GMV Today" value={formatETB(s.revenue.gmvToday)} sub="Completed today" icon={TrendingUp} accent="#c89b3c" />
-          <StatCard label="Avg Order Value" value={formatETB(s.revenue.avgOrderValue)} sub="Per completed order" icon={TrendingUp} accent="#c89b3c" />
+        <SectionLabel>Revenue</SectionLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCard label="Total GMV" value={formatETB(s.revenue.gmvTotal)} sub="All completed orders" icon={TrendingUp} accent="value" href="/analytics" />
+          <StatCard label="GMV Today" value={formatETB(s.revenue.gmvToday)} sub="Completed today" icon={TrendingUp} accent="value" />
+          <StatCard label="Avg Order Value" value={formatETB(s.revenue.avgOrderValue)} sub="Per completed order" icon={TrendingUp} accent="value" />
         </div>
       </section>
 
-      {/* Orders & Escrow */}
       <section>
-        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(31,122,90,0.4)' }}>Orders & Escrow</p>
-        <div className="grid grid-cols-4 gap-4">
-          <StatCard label="Total Orders" value={s.orders.total} sub="All time" icon={ShoppingBag} accent="#1f7a5a" href="/orders" />
-          <StatCard label="Completed Today" value={s.orders.completedToday} icon={CheckCircle} accent="#1f7a5a" />
-          <StatCard label="Held in Escrow" value={formatETB(s.escrow.heldAmount)} sub="Est. pending release" icon={Clock} accent="#B85C2A" />
-          <StatCard label="Open Disputes" value={s.escrow.disputesOpen} sub={s.escrow.disputesOpen > 0 ? 'Needs review' : 'All clear'} icon={ShieldCheck} accent={s.escrow.disputesOpen > 0 ? '#B85C2A' : '#1f7a5a'} href="/disputes" />
+        <SectionLabel>Orders &amp; Escrow</SectionLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Total Orders" value={s.orders.total} sub="All time" icon={ShoppingBag} accent="brand" href="/orders" />
+          <StatCard label="Completed Today" value={s.orders.completedToday} icon={CheckCircle} accent="brand" />
+          <StatCard label="Held in Escrow" value={formatETB(s.escrow.heldAmount)} sub="Est. pending release" icon={Clock} accent="action" />
+          <StatCard
+            label="Open Disputes"
+            value={s.escrow.disputesOpen}
+            sub={s.escrow.disputesOpen > 0 ? 'Needs review' : 'All clear'}
+            icon={ShieldCheck}
+            accent={s.escrow.disputesOpen > 0 ? 'action' : 'brand'}
+            href="/disputes"
+          />
         </div>
       </section>
 
-      {/* Marketplace */}
       <section>
-        <p className="text-xs font-bold uppercase tracking-widest mb-3" style={{ color: 'rgba(31,122,90,0.4)' }}>Marketplace</p>
-        <div className="grid grid-cols-4 gap-4">
-          <StatCard label="Active Listings" value={s.listings.active} icon={Package} accent="#1f7a5a" href="/listings" />
-          <StatCard label="Total Users" value={s.users.total} icon={Users} accent="#174d39" href="/users" />
-          <StatCard label="Registered Businesses" value={s.businesses.total} icon={Building2} accent="#174d39" href="/businesses" />
-          <StatCard label="Pending Verification" value={s.businesses.pendingVerification} sub={s.businesses.pendingVerification > 0 ? 'Awaiting review' : 'All verified'} icon={AlertCircle} accent={s.businesses.pendingVerification > 0 ? '#B85C2A' : '#1f7a5a'} href="/businesses" />
+        <SectionLabel>Marketplace</SectionLabel>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard label="Active Listings" value={s.listings.active} icon={Package} accent="brand" href="/listings" />
+          <StatCard label="Total Users" value={s.users.total} icon={Users} accent="brand" href="/users" />
+          <StatCard label="Registered Businesses" value={s.businesses.total} icon={Building2} accent="brand" href="/businesses" />
+          <StatCard
+            label="Pending Verification"
+            value={s.businesses.pendingVerification}
+            sub={s.businesses.pendingVerification > 0 ? 'Awaiting review' : 'All verified'}
+            icon={AlertCircle}
+            accent={s.businesses.pendingVerification > 0 ? 'action' : 'brand'}
+            href="/businesses"
+          />
         </div>
       </section>
 
-      {/* Two column: recent orders + open disputes */}
-      <div className="grid grid-cols-2 gap-6">
-        {/* Recent Orders */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-            <h3 className="font-bold text-sm" style={{ color: '#1a3028' }}>Recent Orders</h3>
-            <Link href="/orders" className="text-xs font-medium flex items-center gap-1" style={{ color: '#1f7a5a' }}>
-              View all <ArrowRight size={11} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Orders</CardTitle>
+            <Link href="/orders" className="text-xs font-semibold flex items-center gap-1 text-brand-600 hover:text-brand-700">
+              View all <ArrowRight size={12} />
             </Link>
-          </div>
-          <div className="divide-y" style={{ '--tw-divide-opacity': 1 } as any}>
+          </CardHeader>
+          <div className="divide-y divide-canvas-300/60">
             {s.recentOrders.length === 0 ? (
-              <p className="px-5 py-8 text-sm text-center" style={{ color: 'rgba(31,122,90,0.35)' }}>No orders yet</p>
+              <p className="px-5 py-8 text-sm text-center text-ink-300">No orders yet</p>
             ) : s.recentOrders.map((o) => (
-              <div key={o.id} className="px-5 py-3 flex items-center justify-between gap-3">
+              <div key={o.id} className="px-5 py-3.5 flex items-center justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate" style={{ color: '#1a3028' }}>{o.listing?.title ?? 'Item'}</p>
-                  <p className="text-xs mt-0.5" style={{ color: '#888' }}>{o.buyer?.name ?? '—'} · {new Date(o.createdAt).toLocaleDateString()}</p>
+                  <p className="text-sm font-medium truncate text-ink-900">{o.listing?.title ?? 'Item'}</p>
+                  <p className="text-xs mt-0.5 text-ink-400">{o.buyer?.name ?? '—'} · {new Date(o.createdAt).toLocaleDateString()}</p>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className="text-sm font-bold" style={{ color: '#c89b3c' }}>{formatETB(o.amount)}</span>
-                  <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: STATUS_COLOR[o.orderStatus] ?? '#f5f5f5', color: STATUS_TEXT[o.orderStatus] ?? '#888' }}>
-                    {o.orderStatus.replace(/_/g, ' ')}
-                  </span>
+                <div className="flex items-center gap-2.5 flex-shrink-0">
+                  <span className="text-sm font-bold text-value-700 tabular-nums">{formatETB(o.amount)}</span>
+                  <StatusBadge status={o.orderStatus} />
                 </div>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
 
-        {/* Open Disputes */}
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
+        <Card>
+          <CardHeader>
             <div className="flex items-center gap-2">
-              <h3 className="font-bold text-sm" style={{ color: '#1a3028' }}>Open Disputes</h3>
+              <CardTitle>Open Disputes</CardTitle>
               {s.escrow.disputesOpen > 0 && (
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: 'rgba(184,92,42,0.12)', color: '#B85C2A' }}>
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-action-100 text-action-700">
                   {s.escrow.disputesOpen}
                 </span>
               )}
             </div>
-            <Link href="/disputes" className="text-xs font-medium flex items-center gap-1" style={{ color: '#1f7a5a' }}>
-              Manage <ArrowRight size={11} />
+            <Link href="/disputes" className="text-xs font-semibold flex items-center gap-1 text-brand-600 hover:text-brand-700">
+              Manage <ArrowRight size={12} />
             </Link>
-          </div>
-          <div className="divide-y" style={{ '--tw-divide-opacity': 1 } as any}>
+          </CardHeader>
+          <div className="divide-y divide-canvas-300/60">
             {s.openDisputes.length === 0 ? (
               <div className="px-5 py-8 text-center">
-                <CheckCircle size={24} className="mx-auto mb-2" style={{ color: '#1f7a5a' }} />
-                <p className="text-sm font-medium" style={{ color: '#1f7a5a' }}>No open disputes</p>
-                <p className="text-xs mt-0.5" style={{ color: '#888' }}>Marketplace is healthy</p>
+                <CheckCircle size={22} className="mx-auto mb-2 text-brand-500" />
+                <p className="text-sm font-semibold text-brand-700">No open disputes</p>
+                <p className="text-xs mt-0.5 text-ink-400">Marketplace is healthy</p>
               </div>
             ) : s.openDisputes.map((d) => (
-              <div key={d.id} className="px-5 py-3">
+              <div key={d.id} className="px-5 py-3.5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: '#1a3028' }}>{d.listing?.title ?? 'Item'}</p>
-                    <p className="text-xs mt-0.5" style={{ color: '#888' }}>
-                      {d.buyer?.name} vs {d.seller?.name}
-                    </p>
+                    <p className="text-sm font-medium truncate text-ink-900">{d.listing?.title ?? 'Item'}</p>
+                    <p className="text-xs mt-0.5 text-ink-400">{d.buyer?.name} vs {d.seller?.name}</p>
                   </div>
-                  <span className="text-sm font-bold flex-shrink-0" style={{ color: '#c89b3c' }}>{formatETB(d.amount)}</span>
+                  <span className="text-sm font-bold flex-shrink-0 text-value-700 tabular-nums">{formatETB(d.amount)}</span>
                 </div>
-                <p className="text-xs mt-1" style={{ color: 'rgba(31,122,90,0.45)' }}>
-                  {new Date(d.createdAt).toLocaleDateString()}
-                </p>
+                <p className="text-xs mt-1 text-ink-300">{new Date(d.createdAt).toLocaleDateString()}</p>
               </div>
             ))}
           </div>
-        </div>
+        </Card>
       </div>
     </div>
   )
