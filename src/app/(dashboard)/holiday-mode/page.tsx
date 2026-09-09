@@ -130,7 +130,9 @@ export default function HolidayModePage() {
                 </tbody>
               </table>
             </div>
-            <Pagination page={page} total={totalLogs} limit={30} onChange={load} />
+            <div className="px-5 py-3 border-t border-canvas-300/60">
+              <Pagination page={page} total={totalLogs} limit={30} onChange={load} />
+            </div>
           </>
         )}
       </Card>
