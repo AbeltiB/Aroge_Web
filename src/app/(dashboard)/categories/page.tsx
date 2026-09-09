@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
 import type { Category } from '@arogenpm/sdk'
+import { PageHeader, Card, CardTitle, Button, Input, Select, LoadingState } from '../../../components/ui'
+import { CornerDownRight } from 'lucide-react'
 
 export default function CategoriesPage() {
   const [cats, setCats] = useState<Category[]>([])
@@ -30,66 +32,55 @@ export default function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-xl font-bold" style={{ color: '#1a3028' }}>Categories</h2>
+      <PageHeader title="Categories" />
 
-      <form onSubmit={create} className="bg-white rounded-xl p-5 shadow-sm space-y-3 max-w-lg">
-        <h3 className="font-semibold text-sm" style={{ color: '#1a3028' }}>Add Category</h3>
-        <div className="grid grid-cols-2 gap-3">
-          {(['nameEn', 'nameAm', 'slug'] as const).map((field) => (
-            <input
-              key={field}
-              className="border rounded-lg px-3 py-2 text-sm focus:outline-none"
-              style={{ borderColor: 'rgba(31,122,90,0.12)' }}
-              placeholder={field === 'nameEn' ? 'English name' : field === 'nameAm' ? 'አማርኛ ስም' : 'slug-format'}
-              value={form[field]}
-              onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
-              required={field !== 'slug' ? true : undefined}
-            />
-          ))}
-          <select
-            className="border rounded-lg px-3 py-2 text-sm focus:outline-none"
-            style={{ borderColor: 'rgba(31,122,90,0.12)' }}
-            value={form.parentId}
-            onChange={(e) => setForm((f) => ({ ...f, parentId: e.target.value }))}
-          >
-            <option value="">No parent (root)</option>
-            {cats.map((c) => (
-              <option key={c.id} value={c.id}>{c.nameEn}</option>
+      <Card padded className="space-y-3 max-w-lg">
+        <CardTitle>Add Category</CardTitle>
+        <form onSubmit={create} className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            {(['nameEn', 'nameAm', 'slug'] as const).map((field) => (
+              <Input
+                key={field}
+                placeholder={field === 'nameEn' ? 'English name' : field === 'nameAm' ? 'አማርኛ ስም' : 'slug-format'}
+                value={form[field]}
+                onChange={(e) => setForm((f) => ({ ...f, [field]: e.target.value }))}
+                required={field !== 'slug'}
+              />
             ))}
-          </select>
-        </div>
-        <button
-          type="submit"
-          disabled={saving}
-          className="px-4 py-2 rounded-lg text-sm font-medium"
-          style={{ background: '#1f7a5a', color: '#f3efe7' }}
-        >
-          {saving ? 'Saving…' : 'Add Category'}
-        </button>
-      </form>
+            <Select
+              value={form.parentId}
+              onChange={(e) => setForm((f) => ({ ...f, parentId: e.target.value }))}
+            >
+              <option value="">No parent (root)</option>
+              {cats.map((c) => (
+                <option key={c.id} value={c.id}>{c.nameEn}</option>
+              ))}
+            </Select>
+          </div>
+          <Button type="submit" variant="primary" disabled={saving}>
+            {saving ? 'Saving…' : 'Add Category'}
+          </Button>
+        </form>
+      </Card>
 
-      {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
+      {loading ? <LoadingState /> : (
         <div className="space-y-2">
           {cats.map((c) => (
-            <div key={c.id} className="bg-white rounded-xl p-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div>
-                  <p className="font-medium text-sm" style={{ color: '#1a3028' }}>{c.nameEn}</p>
-                  <p className="text-xs" style={{ color: '#888' }}>{c.nameAm} · /{c.slug}</p>
-                </div>
-              </div>
+            <Card key={c.id} padded>
+              <p className="font-semibold text-sm text-ink-900">{c.nameEn}</p>
+              <p className="text-xs text-ink-400 mt-0.5">{c.nameAm} · /{c.slug}</p>
               {c.children && c.children.length > 0 && (
-                <div className="mt-2 pl-4 space-y-1">
+                <div className="mt-3 pl-3 space-y-1.5 border-l-2 border-canvas-300">
                   {c.children.map((ch) => (
-                    <div key={ch.id} className="flex items-center gap-2">
-                      <span className="text-xs" style={{ color: '#888' }}>└</span>
-                      <span className="text-sm" style={{ color: '#444' }}>{ch.nameEn}</span>
-                      <span className="text-xs" style={{ color: '#aaa' }}>{ch.nameAm}</span>
+                    <div key={ch.id} className="flex items-center gap-1.5 pl-2">
+                      <CornerDownRight size={12} className="text-ink-300" />
+                      <span className="text-sm text-ink-700">{ch.nameEn}</span>
+                      <span className="text-xs text-ink-300">{ch.nameAm}</span>
                     </div>
                   ))}
                 </div>
               )}
-            </div>
+            </Card>
           ))}
         </div>
       )}

@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
 import { formatETB } from '@arogenpm/sdk'
+import { PageHeader, FilterChips, Table, THead, Th, Tr, Td, StatusBadge, Button, Card, LoadingState, EmptyState } from '../../../components/ui'
+import { Wallet, AlertTriangle } from 'lucide-react'
 
 interface PaymentRow {
   id: string
@@ -33,14 +35,6 @@ interface PaymentsRes {
   page: number
   limit: number
   totals: StatusTotal[]
-}
-
-const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  PENDING: { bg: '#faeeda', color: '#3d2a10' },
-  HELD: { bg: '#e6f0eb', color: '#1f7a5a' },
-  RELEASED: { bg: '#e6f0eb', color: '#174d39' },
-  REFUNDED: { bg: '#f5f5f5', color: '#888' },
-  FAILED: { bg: 'rgba(184,92,42,0.12)', color: '#B85C2A' },
 }
 
 const STATUSES = ['', 'PENDING', 'HELD', 'RELEASED', 'REFUNDED', 'FAILED']
@@ -94,135 +88,81 @@ export default function PaymentsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold" style={{ color: '#1a3028' }}>Payments</h2>
-        <span className="text-sm" style={{ color: '#444' }}>{data?.total ?? 0} total</span>
-      </div>
+    <div className="space-y-5">
+      <PageHeader title="Payments" subtitle={`${data?.total ?? 0} total`} />
 
       {pendingTransfers.length > 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-4 space-y-3" style={{ borderLeft: '4px solid #c89b3c' }}>
-          <h3 className="text-sm font-bold" style={{ color: '#3d2a10' }}>
+        <Card padded className="space-y-3 border-l-4 border-l-value-400">
+          <h3 className="text-sm font-bold text-value-800 flex items-center gap-2">
+            <AlertTriangle size={15} />
             Bank Transfers Awaiting Verification ({pendingTransfers.length})
           </h3>
           <div className="space-y-2">
             {pendingTransfers.map((p) => {
               const itemLabel = p.order?.bundleId ? 'Bundle' : p.order?.listing?.title ?? '—'
               return (
-                <div key={p.id} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2" style={{ background: '#faeeda' }}>
-                  <div className="text-sm" style={{ color: '#3d2a10' }}>
+                <div key={p.id} className="flex items-center justify-between gap-3 rounded-lg px-3 py-2.5 bg-value-50">
+                  <div className="text-sm text-value-900">
                     <span className="font-semibold">{p.order?.buyer?.name ?? '—'}</span> · {itemLabel} · {formatETB(p.amount)}
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => viewProof(p.id)}
-                      className="text-xs px-2 py-1 rounded"
-                      style={{ background: '#f3efe7', color: '#1f7a5a' }}
-                    >
-                      View Proof
-                    </button>
-                    <button
-                      onClick={() => verifyTransfer(p.id)}
-                      disabled={actioningId === p.id}
-                      className="text-xs px-2 py-1 rounded"
-                      style={{ background: '#1f7a5a', color: '#f3efe7', opacity: actioningId === p.id ? 0.6 : 1 }}
-                    >
-                      Verify
-                    </button>
-                    <button
-                      onClick={() => rejectTransfer(p.id)}
-                      disabled={actioningId === p.id}
-                      className="text-xs px-2 py-1 rounded"
-                      style={{ background: '#B85C2A', color: '#fff', opacity: actioningId === p.id ? 0.6 : 1 }}
-                    >
-                      Reject
-                    </button>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="secondary" onClick={() => viewProof(p.id)}>View Proof</Button>
+                    <Button size="sm" variant="primary" onClick={() => verifyTransfer(p.id)} disabled={actioningId === p.id}>Verify</Button>
+                    <Button size="sm" variant="danger" onClick={() => rejectTransfer(p.id)} disabled={actioningId === p.id}>Reject</Button>
                   </div>
                 </div>
               )
             })}
           </div>
-        </div>
+        </Card>
       )}
 
       <div className="flex gap-3 flex-wrap">
-        {data?.totals.map((t) => {
-          const sc = STATUS_COLORS[t.status] ?? { bg: '#f5f5f5', color: '#888' }
-          return (
-            <div key={t.status} className="rounded-xl px-4 py-3 flex-1 min-w-[140px]" style={{ background: sc.bg }}>
-              <p className="text-xs font-semibold" style={{ color: sc.color }}>{t.status}</p>
-              <p className="text-lg font-bold" style={{ color: sc.color }}>{formatETB(t._sum.amount ?? 0)}</p>
-              <p className="text-xs" style={{ color: sc.color }}>{t._count} payment{t._count === 1 ? '' : 's'}</p>
-            </div>
-          )
-        })}
-      </div>
-
-      <div className="flex gap-2 flex-wrap">
-        {STATUSES.map((s) => (
-          <button
-            key={s || 'ALL'}
-            onClick={() => { setStatus(s); load(s) }}
-            className="px-3 py-1 rounded-full text-xs font-medium"
-            style={status === s
-              ? { background: '#1f7a5a', color: '#f3efe7' }
-              : { background: '#f3efe7', color: '#1f7a5a' }}
-          >
-            {s || 'All'}
-          </button>
+        {data?.totals.map((t) => (
+          <div key={t.status} className="rounded-xl px-4 py-3 flex-1 min-w-[140px] bg-white border border-canvas-300/60 shadow-[var(--shadow-card)]">
+            <p className="text-xs font-semibold text-ink-400 uppercase tracking-wide">{t.status}</p>
+            <p className="text-lg font-bold text-ink-900 mt-0.5 tabular-nums">{formatETB(t._sum.amount ?? 0)}</p>
+            <p className="text-xs text-ink-400">{t._count} payment{t._count === 1 ? '' : 's'}</p>
+          </div>
         ))}
       </div>
 
-      {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: '#f3efe7', color: 'rgba(31,122,90,0.6)' }}>
-                <th className="text-left px-4 py-3">Gateway</th>
-                <th className="text-left px-4 py-3">Gateway Ref</th>
-                <th className="text-left px-4 py-3">Item</th>
-                <th className="text-left px-4 py-3">Buyer</th>
-                <th className="text-left px-4 py-3">Seller</th>
-                <th className="text-left px-4 py-3">Amount</th>
-                <th className="text-left px-4 py-3">Status</th>
-                <th className="text-left px-4 py-3">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items.map((p) => {
-                const sc = STATUS_COLORS[p.status] ?? { bg: '#f5f5f5', color: '#888' }
-                const itemLabel = p.order?.bundleId
-                  ? 'Bundle'
-                  : p.order?.listing?.title ?? '—'
-                return (
-                  <tr key={p.id} className="border-t" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-                    <td className="px-4 py-3" style={{ color: '#444' }}>{p.gateway}</td>
-                    <td className="px-4 py-3 font-mono text-xs" style={{ color: '#888' }}>
-                      {p.gatewayRef ?? '—'}
-                    </td>
-                    <td className="px-4 py-3" style={{ color: '#1a3028' }}>{itemLabel}</td>
-                    <td className="px-4 py-3" style={{ color: '#444' }}>{p.order?.buyer?.name ?? '—'}</td>
-                    <td className="px-4 py-3" style={{ color: '#444' }}>{p.order?.seller?.name ?? '—'}</td>
-                    <td className="px-4 py-3 font-medium" style={{ color: '#c89b3c' }}>
-                      {formatETB(p.amount)}
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded-full text-xs" style={sc}>
-                        {p.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3" style={{ color: '#888' }}>
-                      {new Date(p.createdAt).toLocaleDateString()}
-                    </td>
-                  </tr>
-                )
-              })}
-              {data?.items.length === 0 && (
-                <tr><td colSpan={8} className="px-4 py-6 text-center text-gray-400">No payments yet.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      <FilterChips options={STATUSES} value={status} onChange={(s) => { setStatus(s); load(s) }} labels={{ '': 'All' }} />
+
+      {loading ? <LoadingState /> : !data?.items.length ? (
+        <Card><EmptyState icon={Wallet} title="No payments yet" /></Card>
+      ) : (
+        <Table>
+          <THead>
+            <tr>
+              <Th>Gateway</Th>
+              <Th>Gateway Ref</Th>
+              <Th>Item</Th>
+              <Th>Buyer</Th>
+              <Th>Seller</Th>
+              <Th>Amount</Th>
+              <Th>Status</Th>
+              <Th>Date</Th>
+            </tr>
+          </THead>
+          <tbody>
+            {data.items.map((p) => {
+              const itemLabel = p.order?.bundleId ? 'Bundle' : p.order?.listing?.title ?? '—'
+              return (
+                <Tr key={p.id}>
+                  <Td>{p.gateway}</Td>
+                  <Td className="font-mono text-xs text-ink-400">{p.gatewayRef ?? '—'}</Td>
+                  <Td className="text-ink-900">{itemLabel}</Td>
+                  <Td>{p.order?.buyer?.name ?? '—'}</Td>
+                  <Td>{p.order?.seller?.name ?? '—'}</Td>
+                  <Td className="font-semibold text-value-700">{formatETB(p.amount)}</Td>
+                  <Td><StatusBadge status={p.status} /></Td>
+                  <Td className="text-ink-400">{new Date(p.createdAt).toLocaleDateString()}</Td>
+                </Tr>
+              )
+            })}
+          </tbody>
+        </Table>
       )}
     </div>
   )
