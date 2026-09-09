@@ -60,6 +60,16 @@ export default function LoginPage() {
       const poll = await api.get<PollResponse>(`/auth/telegram/bot/poll/${token}`)
       if (!poll.success) {
         if (pollTimer.current) clearInterval(pollTimer.current)
+        // The Telegram tab may have already finished this token itself
+        // (it completes sign-in on its own instead of waiting for this
+        // tab) — rehydrate from localStorage before treating this as
+        // a real failure.
+        await useAuthStore.persist.rehydrate()
+        if (useAuthStore.getState().isAuthenticated()) {
+          setStatus('signing-in')
+          router.push('/dashboard')
+          return
+        }
         setError(poll.message)
         setStatus('idle')
         return
@@ -70,7 +80,7 @@ export default function LoginPage() {
       setStatus('signing-in')
       setAuth(poll.data.accessToken, poll.data.admin)
       router.push('/dashboard')
-    }, 2000)
+    }, 1200)
   }
 
   return (

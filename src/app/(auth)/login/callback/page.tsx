@@ -1,16 +1,24 @@
 'use client'
 
 import { Suspense, useEffect, useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { api } from '../../../../lib/api'
+import { useAuthStore } from '../../../../store/auth.store'
+import type { JwtAdminPayload } from '@arogenpm/sdk'
 
-// oauth.telegram.org redirects the browser back here with the signed
-// Telegram payload as query params. This tab's only job is to hand that
-// payload to the API (which writes the result into the same pending-login
-// record the /login tab is polling) and tell the person they can close it —
-// the /login tab is the one that actually completes sign-in.
+type PollResponse =
+  | { status: 'pending' }
+  | { status: 'verified'; accessToken: string; admin: JwtAdminPayload & { name: string } }
+
+// Telegram redirects here (after the Login URL button is confirmed) with
+// the signed payload as query params. Rather than just telling the person
+// to switch back to the original /login tab, this tab completes the sign-in
+// itself and jumps straight to the dashboard — whichever tab they're
+// actually looking at, one of them lands them there.
 function CallbackContent() {
+  const router = useRouter()
   const params = useSearchParams()
+  const setAuth = useAuthStore((s) => s.setAuth)
   const [message, setMessage] = useState('Signing you in…')
 
   useEffect(() => {
@@ -24,21 +32,44 @@ function CallbackContent() {
       return
     }
 
-    api.post('/auth/telegram/bot/oauth-callback', {
-      token,
-      id: Number(id),
-      first_name: params.get('first_name') ?? '',
-      last_name: params.get('last_name') ?? undefined,
-      username: params.get('username') ?? undefined,
-      photo_url: params.get('photo_url') ?? undefined,
-      auth_date: Number(authDate),
-      hash,
-    }).then((res) => {
-      setMessage(res.success ? "You're logged in! You can close this tab." : res.message)
-    }).catch(() => {
-      setMessage('Network error. Close this tab and try again from Aroge.')
-    })
-  }, [params])
+    async function finish() {
+      const callback = await api.post('/auth/telegram/bot/oauth-callback', {
+        token,
+        id: Number(id),
+        first_name: params.get('first_name') ?? '',
+        last_name: params.get('last_name') ?? undefined,
+        username: params.get('username') ?? undefined,
+        photo_url: params.get('photo_url') ?? undefined,
+        auth_date: Number(authDate),
+        hash,
+      })
+      if (!callback.success) {
+        setMessage(callback.message)
+        return
+      }
+
+      // The record was just marked verified — poll picks it up immediately,
+      // with a couple of quick retries only to absorb any tiny timing gap.
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const poll = await api.get<PollResponse>(`/auth/telegram/bot/poll/${token}`)
+        if (poll.success && poll.data.status === 'verified') {
+          setAuth(poll.data.accessToken, poll.data.admin)
+          setMessage("You're logged in! Redirecting…")
+          router.replace('/dashboard')
+          return
+        }
+        if (poll.success && poll.data.status === 'pending') {
+          await new Promise((resolve) => setTimeout(resolve, 400))
+          continue
+        }
+        setMessage(poll.success ? 'Something went wrong. Close this tab and try again.' : poll.message)
+        return
+      }
+      setMessage('Taking longer than expected — close this tab and check the original one.')
+    }
+
+    finish().catch(() => setMessage('Network error. Close this tab and try again from Aroge.'))
+  }, [params, router, setAuth])
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ background: '#f3efe7' }}>
