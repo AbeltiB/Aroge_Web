@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { api } from '../../../lib/api'
 import { useAuthStore } from '../../../store/auth.store'
+import { Button } from '../../../components/ui'
 import type { JwtAdminPayload } from '@arogenpm/sdk'
 
 type StartResponse = { token: string; deepLink: string; expiresIn: number }
@@ -88,49 +89,41 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f3efe7' }}>
-      <div className="bg-white rounded-2xl shadow-md w-full max-w-sm p-8">
+    <div className="min-h-screen flex items-center justify-center bg-canvas-200 px-4">
+      <div className="bg-white rounded-3xl shadow-[var(--shadow-popover)] w-full max-w-sm p-8 border border-canvas-300/60">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold" style={{ color: '#1f7a5a' }}>Aroge</h1>
-          <p className="text-sm mt-1" style={{ color: '#444444' }}>Backoffice Admin</p>
+          <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center text-lg font-black bg-brand-500 text-white shadow-sm">አ</div>
+          <h1 className="text-2xl font-bold text-brand-700 tracking-tight">Aroge</h1>
+          <p className="text-sm mt-1 text-ink-400">Backoffice Admin</p>
         </div>
 
-        <p className="text-sm text-center mb-6" style={{ color: '#444444' }}>
+        <p className="text-sm text-center mb-6 text-ink-500">
           Sign in with the Telegram account your admin access was set up with.
         </p>
 
         {(status === 'idle' || status === 'starting') && (
-          <button
-            onClick={startLogin}
-            disabled={status === 'starting'}
-            className="w-full rounded-lg py-3 text-sm font-semibold text-white disabled:opacity-60"
-            style={{ background: '#1f7a5a' }}
-          >
+          <Button variant="primary" className="w-full" onClick={startLogin} disabled={status === 'starting'}>
             {status === 'starting' ? 'Starting…' : 'Continue with Telegram'}
-          </button>
+          </Button>
         )}
 
         {status === 'waiting' && (
           <div className="text-center space-y-3">
-            <p className="text-sm" style={{ color: '#1f7a5a' }}>
+            <p className="text-sm text-brand-600">
               Telegram should have opened — tap the &ldquo;Log in to Aroge&rdquo; button there.
             </p>
-            <a
-              href={deepLink}
-              className="text-xs underline"
-              style={{ color: '#1f7a5a' }}
-            >
+            <a href={deepLink} className="text-xs underline text-brand-600 hover:text-brand-700">
               Didn&apos;t open? Tap here
             </a>
           </div>
         )}
 
         {status === 'signing-in' && (
-          <p className="text-sm text-center" style={{ color: '#1f7a5a' }}>Signing in…</p>
+          <p className="text-sm text-center text-brand-600">Signing in…</p>
         )}
 
         {error && (
-          <p className="text-sm text-red-600 text-center mt-4">{error}</p>
+          <p className="text-sm text-action-600 text-center mt-4">{error}</p>
         )}
       </div>
     </div>

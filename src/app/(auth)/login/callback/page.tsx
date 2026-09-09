@@ -81,8 +81,8 @@ function CallbackContent() {
   }, [params, router, setAuth])
 
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#f3efe7' }}>
-      <p className="text-sm text-center px-8" style={{ color: '#1f7a5a' }}>{message}</p>
+    <div className="min-h-screen flex items-center justify-center bg-canvas-200 px-4">
+      <p className="text-sm text-center px-8 text-brand-600">{message}</p>
     </div>
   )
 }
