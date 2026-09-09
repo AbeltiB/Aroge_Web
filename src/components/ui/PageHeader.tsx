@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 export function PageHeader({
   title, subtitle, actions,
-}: { title: string; subtitle?: string; actions?: ReactNode }) {
+}: { title: ReactNode; subtitle?: ReactNode; actions?: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-4 flex-wrap">
       <div>

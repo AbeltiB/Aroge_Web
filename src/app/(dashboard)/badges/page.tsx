@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { BadgeCheck, Settings2, CheckCircle, XCircle, ShieldOff } from 'lucide-react'
 import { api } from '../../../lib/api'
+import { PageHeader, Card, CardHeader, CardTitle, Table, THead, Th, Tr, Td, Button, Toggle, Input, Badge, LoadingState } from '../../../components/ui'
 
 interface BadgeCriteria {
   id: string
@@ -33,8 +34,11 @@ interface TrustedUser {
 
 interface ReviewPage { items: ReviewUser[]; total: number }
 
+const AmharicA = ({ className = '' }: { className?: string }) => (
+  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black bg-value-400 text-white flex-shrink-0 ${className}`}>አ</span>
+)
+
 export default function BadgesPage() {
-  const [criteria, setCriteria] = useState<BadgeCriteria | null>(null)
   const [critForm, setCritForm] = useState({ minSales: 5, minPurchases: 3, requireBoth: false })
   const [savingCrit, setSavingCrit] = useState(false)
   const [critSaved, setCritSaved] = useState(false)
@@ -50,10 +54,7 @@ export default function BadgesPage() {
 
   const loadCriteria = useCallback(async () => {
     const res = await api.get<BadgeCriteria>('/admin/badge-criteria')
-    if (res.success) {
-      setCriteria(res.data)
-      setCritForm({ minSales: res.data.minSales, minPurchases: res.data.minPurchases, requireBoth: res.data.requireBoth })
-    }
+    if (res.success) setCritForm({ minSales: res.data.minSales, minPurchases: res.data.minPurchases, requireBoth: res.data.requireBoth })
   }, [])
 
   const loadReviews = useCallback(async () => {
@@ -108,202 +109,129 @@ export default function BadgesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-xl font-bold flex items-center gap-2" style={{ color: '#1a3028' }}>
-          <span className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-black" style={{ background: '#c89b3c', color: '#fff' }}>አ</span>
-          Trusted Badge
-        </h1>
-        <p className="text-sm mt-0.5" style={{ color: 'rgba(31,122,90,0.55)' }}>
-          Manage badge criteria and review pending applications
-        </p>
-      </div>
+      <PageHeader
+        title={<span className="flex items-center gap-2"><AmharicA className="w-7 h-7 text-sm" />Trusted Badge</span>}
+        subtitle="Manage badge criteria and review pending applications"
+      />
 
-      {/* Criteria settings */}
-      <div className="rounded-xl border p-5 space-y-4" style={{ background: '#ffffff', borderColor: 'rgba(31,122,90,0.12)' }}>
+      <Card padded className="space-y-4">
         <div className="flex items-center gap-2">
-          <Settings2 size={15} style={{ color: '#1f7a5a' }} />
-          <h2 className="font-semibold text-sm" style={{ color: '#1a3028' }}>Badge Criteria</h2>
+          <Settings2 size={15} className="text-brand-600" />
+          <CardTitle>Badge Criteria</CardTitle>
         </div>
 
-        <div className="grid grid-cols-3 gap-4 items-end">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 items-end">
           <div>
-            <label className="text-xs font-semibold block mb-1" style={{ color: '#1a3028' }}>Min. Completed Sales</label>
-            <input
-              type="number" min={0}
-              className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-              style={{ borderColor: 'rgba(31,122,90,0.2)', color: '#1a3028' }}
-              value={critForm.minSales}
-              onChange={(e) => setCritForm((f) => ({ ...f, minSales: Number(e.target.value) }))}
-            />
+            <label className="text-xs font-semibold block mb-1 text-ink-700">Min. Completed Sales</label>
+            <Input type="number" min={0} value={critForm.minSales} onChange={(e) => setCritForm((f) => ({ ...f, minSales: Number(e.target.value) }))} />
           </div>
           <div>
-            <label className="text-xs font-semibold block mb-1" style={{ color: '#1a3028' }}>Min. Completed Purchases</label>
-            <input
-              type="number" min={0}
-              className="w-full rounded-lg border px-3 py-2 text-sm outline-none"
-              style={{ borderColor: 'rgba(31,122,90,0.2)', color: '#1a3028' }}
-              value={critForm.minPurchases}
-              onChange={(e) => setCritForm((f) => ({ ...f, minPurchases: Number(e.target.value) }))}
-            />
+            <label className="text-xs font-semibold block mb-1 text-ink-700">Min. Completed Purchases</label>
+            <Input type="number" min={0} value={critForm.minPurchases} onChange={(e) => setCritForm((f) => ({ ...f, minPurchases: Number(e.target.value) }))} />
           </div>
-          <div className="flex items-center gap-2 pb-2">
-            <button
-              onClick={() => setCritForm((f) => ({ ...f, requireBoth: !f.requireBoth }))}
-              className="relative w-10 h-5 rounded-full transition-colors flex-shrink-0"
-              style={{ background: critForm.requireBoth ? '#1f7a5a' : 'rgba(31,122,90,0.2)' }}
-            >
-              <span
-                className="absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all"
-                style={{ left: critForm.requireBoth ? '1.25rem' : '0.125rem' }}
-              />
-            </button>
-            <span className="text-xs font-medium" style={{ color: '#1a3028' }}>
-              Require both sales AND purchases
-            </span>
+          <div className="flex items-center gap-2 pb-2.5">
+            <Toggle checked={critForm.requireBoth} onChange={() => setCritForm((f) => ({ ...f, requireBoth: !f.requireBoth }))} />
+            <span className="text-xs font-medium text-ink-700">Require both sales AND purchases</span>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={saveCriteria}
-            disabled={savingCrit}
-            className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-60"
-            style={{ background: '#1f7a5a', color: '#f3efe7' }}
-          >
-            {savingCrit ? 'Saving…' : 'Save Criteria'}
-          </button>
-          {critSaved && (
-            <span className="text-xs font-semibold flex items-center gap-1" style={{ color: '#1f7a5a' }}>
-              <CheckCircle size={13} /> Saved
-            </span>
-          )}
-          <p className="text-xs ml-auto" style={{ color: 'rgba(31,122,90,0.45)' }}>
-            The system checks eligibility automatically on each completed order
-          </p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button variant="primary" onClick={saveCriteria} disabled={savingCrit}>{savingCrit ? 'Saving…' : 'Save Criteria'}</Button>
+          {critSaved && <span className="text-xs font-semibold flex items-center gap-1 text-brand-600"><CheckCircle size={13} /> Saved</span>}
+          <p className="text-xs text-ink-400 sm:ml-auto">The system checks eligibility automatically on each completed order</p>
         </div>
-      </div>
+      </Card>
 
-      {/* Pending reviews */}
-      <div className="rounded-xl border overflow-hidden" style={{ background: '#ffffff', borderColor: 'rgba(31,122,90,0.12)' }}>
-        <div className="px-5 py-3 border-b flex items-center justify-between" style={{ borderColor: 'rgba(31,122,90,0.10)' }}>
+      <Card className="overflow-hidden">
+        <CardHeader>
           <div className="flex items-center gap-2">
-            <BadgeCheck size={14} style={{ color: '#c89b3c' }} />
-            <span className="font-semibold text-sm" style={{ color: '#1a3028' }}>Pending Review</span>
+            <BadgeCheck size={14} className="text-value-600" />
+            <CardTitle>Pending Review</CardTitle>
           </div>
-          {reviewTotal > 0 && (
-            <span className="text-xs font-bold px-2 py-0.5 rounded-full" style={{ background: '#faeeda', color: '#3d2a10' }}>
-              {reviewTotal} waiting
-            </span>
-          )}
-        </div>
+          {reviewTotal > 0 && <Badge tone="value">{reviewTotal} waiting</Badge>}
+        </CardHeader>
 
-        {loadingReviews ? (
-          <div className="py-10 text-center text-sm" style={{ color: 'rgba(31,122,90,0.45)' }}>Loading…</div>
-        ) : reviews.length === 0 ? (
-          <div className="py-10 text-center text-sm" style={{ color: 'rgba(31,122,90,0.45)' }}>No pending reviews</div>
+        {loadingReviews ? <LoadingState /> : reviews.length === 0 ? (
+          <p className="py-10 text-center text-sm text-ink-400">No pending reviews</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-                {['User', 'City', 'Completed Sales', 'Completed Purchases', 'Actions'].map((h) => (
-                  <th key={h} className="text-left px-5 py-2.5 text-xs font-semibold" style={{ color: 'rgba(31,122,90,0.55)' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {reviews.map((u) => (
-                <tr key={u.id} className="border-b last:border-0" style={{ borderColor: 'rgba(31,122,90,0.06)' }}>
-                  <td className="px-5 py-3">
-                    <div className="font-semibold" style={{ color: '#1a3028' }}>{u.name}</div>
-                    <div className="text-xs mt-0.5" style={{ color: 'rgba(31,122,90,0.45)' }}>
-                      Joined {new Date(u.createdAt).toLocaleDateString('en-ET', { month: 'short', year: 'numeric' })}
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-xs" style={{ color: '#444444' }}>{u.city ?? '—'}</td>
-                  <td className="px-5 py-3 font-bold text-center" style={{ color: '#1f7a5a' }}>{u._count.sellerOrders}</td>
-                  <td className="px-5 py-3 font-bold text-center" style={{ color: '#1f7a5a' }}>{u._count.buyerOrders}</td>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => grant(u.id)}
-                        disabled={acting === u.id}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-opacity disabled:opacity-50"
-                        style={{ background: '#c89b3c', color: '#3d2a10' }}
-                      >
-                        <span className="font-black">አ</span>
-                        Grant Badge
-                      </button>
-                      <button
-                        onClick={() => dismiss(u.id)}
-                        disabled={acting === u.id}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-semibold transition-opacity disabled:opacity-50"
-                        style={{ background: 'rgba(31,122,90,0.08)', color: '#1a3028' }}
-                      >
-                        <XCircle size={12} />
-                        Dismiss
-                      </button>
-                    </div>
-                  </td>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <THead>
+                <tr>
+                  <Th>User</Th><Th>City</Th><Th>Completed Sales</Th><Th>Completed Purchases</Th><Th>Actions</Th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </THead>
+              <tbody>
+                {reviews.map((u) => (
+                  <Tr key={u.id}>
+                    <Td>
+                      <div className="font-semibold text-ink-900">{u.name}</div>
+                      <div className="text-xs mt-0.5 text-ink-400">Joined {new Date(u.createdAt).toLocaleDateString('en-ET', { month: 'short', year: 'numeric' })}</div>
+                    </Td>
+                    <Td>{u.city ?? '—'}</Td>
+                    <Td className="font-bold text-center text-brand-600">{u._count.sellerOrders}</Td>
+                    <Td className="font-bold text-center text-brand-600">{u._count.buyerOrders}</Td>
+                    <Td>
+                      <div className="flex items-center gap-2">
+                        <Button size="sm" variant="secondary" className="!bg-value-400 !text-white !border-transparent hover:!bg-value-500" onClick={() => grant(u.id)} disabled={acting === u.id}>
+                          Grant Badge
+                        </Button>
+                        <Button size="sm" variant="ghost" onClick={() => dismiss(u.id)} disabled={acting === u.id}>
+                          <XCircle size={12} /> Dismiss
+                        </Button>
+                      </div>
+                    </Td>
+                  </Tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
 
-      {/* Trusted users list */}
-      <div className="rounded-xl border overflow-hidden" style={{ background: '#ffffff', borderColor: 'rgba(31,122,90,0.12)' }}>
-        <div className="px-5 py-3 border-b flex items-center gap-2" style={{ borderColor: 'rgba(31,122,90,0.10)' }}>
-          <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-black" style={{ background: '#c89b3c', color: '#fff' }}>አ</span>
-          <span className="font-semibold text-sm" style={{ color: '#1a3028' }}>Trusted Members</span>
-        </div>
+      <Card className="overflow-hidden">
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <AmharicA className="w-5 h-5 text-[10px]" />
+            <CardTitle>Trusted Members</CardTitle>
+          </div>
+        </CardHeader>
 
-        {loadingTrusted ? (
-          <div className="py-10 text-center text-sm" style={{ color: 'rgba(31,122,90,0.45)' }}>Loading…</div>
-        ) : trusted.length === 0 ? (
-          <div className="py-10 text-center text-sm" style={{ color: 'rgba(31,122,90,0.45)' }}>No trusted members yet</div>
+        {loadingTrusted ? <LoadingState /> : trusted.length === 0 ? (
+          <p className="py-10 text-center text-sm text-ink-400">No trusted members yet</p>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-                {['User', 'City', 'Sales', 'Purchases', 'Trusted Since', ''].map((h) => (
-                  <th key={h} className="text-left px-5 py-2.5 text-xs font-semibold" style={{ color: 'rgba(31,122,90,0.55)' }}>{h}</th>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <THead>
+                <tr><Th>User</Th><Th>City</Th><Th>Sales</Th><Th>Purchases</Th><Th>Trusted Since</Th><Th /></tr>
+              </THead>
+              <tbody>
+                {trusted.map((u) => (
+                  <Tr key={u.id}>
+                    <Td>
+                      <div className="flex items-center gap-2">
+                        <AmharicA className="w-5 h-5 text-[10px]" />
+                        <span className="font-semibold text-ink-900">{u.name}</span>
+                      </div>
+                    </Td>
+                    <Td>{u.city ?? '—'}</Td>
+                    <Td className="font-semibold text-center text-brand-600">{u._count.sellerOrders}</Td>
+                    <Td className="font-semibold text-center text-brand-600">{u._count.buyerOrders}</Td>
+                    <Td className="text-ink-400">
+                      {u.trustedAt ? new Date(u.trustedAt).toLocaleDateString('en-ET', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
+                    </Td>
+                    <Td>
+                      <Button size="sm" variant="danger" onClick={() => revoke(u.id)} disabled={acting === u.id}>
+                        <ShieldOff size={11} /> Revoke
+                      </Button>
+                    </Td>
+                  </Tr>
                 ))}
-              </tr>
-            </thead>
-            <tbody>
-              {trusted.map((u) => (
-                <tr key={u.id} className="border-b last:border-0 hover:bg-gray-50" style={{ borderColor: 'rgba(31,122,90,0.06)' }}>
-                  <td className="px-5 py-3">
-                    <div className="flex items-center gap-2">
-                      <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-black flex-shrink-0" style={{ background: '#c89b3c', color: '#fff' }}>አ</span>
-                      <span className="font-semibold" style={{ color: '#1a3028' }}>{u.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-5 py-3 text-xs" style={{ color: '#444444' }}>{u.city ?? '—'}</td>
-                  <td className="px-5 py-3 font-semibold text-center" style={{ color: '#1f7a5a' }}>{u._count.sellerOrders}</td>
-                  <td className="px-5 py-3 font-semibold text-center" style={{ color: '#1f7a5a' }}>{u._count.buyerOrders}</td>
-                  <td className="px-5 py-3 text-xs" style={{ color: 'rgba(31,122,90,0.45)' }}>
-                    {u.trustedAt ? new Date(u.trustedAt).toLocaleDateString('en-ET', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'}
-                  </td>
-                  <td className="px-5 py-3">
-                    <button
-                      onClick={() => revoke(u.id)}
-                      disabled={acting === u.id}
-                      className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium transition-opacity disabled:opacity-50"
-                      style={{ color: '#B85C2A', background: 'rgba(184,92,42,0.08)' }}
-                    >
-                      <ShieldOff size={11} />
-                      Revoke
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
     </div>
   )
 }
