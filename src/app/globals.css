@@ -37,28 +37,30 @@
   --color-action-800: #5c2109;
   --color-action-900: #3d1706;
 
-  /* Canvas — warm neutral, the page background family */
-  --color-canvas-50:  #fdfcfa;
-  --color-canvas-100: #f8f6f1;
-  --color-canvas-200: #f3efe7;
-  --color-canvas-300: #e8e4dc;
-  --color-canvas-400: #d9d4c8;
-  --color-canvas-500: #c4beaf;
+  /* Canvas — cool neutral gray, the page background/border family.
+     Was a warm cream/tan palette; switched to a standard neutral-gray
+     scale to read as a modern SaaS product rather than a themed page. */
+  --color-canvas-50:  #ffffff;
+  --color-canvas-100: #f9fafb;
+  --color-canvas-200: #f3f4f6;
+  --color-canvas-300: #e5e7eb;
+  --color-canvas-400: #d1d5db;
+  --color-canvas-500: #9ca3af;
 
-  /* Ink — text grays */
-  --color-ink-900: #1a1a1a;
-  --color-ink-700: #3d3d3d;
-  --color-ink-500: #5c5c5c;
-  --color-ink-400: #78766f;
-  --color-ink-300: #9a9890;
-  --color-ink-200: #c7c4bb;
+  /* Ink — cool neutral text grays (was warm/olive-tinted) */
+  --color-ink-900: #111827;
+  --color-ink-700: #374151;
+  --color-ink-500: #6b7280;
+  --color-ink-400: #9ca3af;
+  --color-ink-300: #c1c5cb;
+  --color-ink-200: #e5e7eb;
 
   --font-sans: var(--font-geist-sans), -apple-system, "Helvetica Neue", sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --shadow-card: 0 1px 2px rgba(13, 41, 31, 0.04), 0 2px 8px rgba(13, 41, 31, 0.06);
-  --shadow-card-hover: 0 2px 4px rgba(13, 41, 31, 0.06), 0 8px 24px rgba(13, 41, 31, 0.10);
-  --shadow-popover: 0 8px 16px rgba(13, 41, 31, 0.08), 0 16px 40px rgba(13, 41, 31, 0.12);
+  --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
+  --shadow-card-hover: 0 2px 4px rgba(16, 24, 40, 0.06), 0 8px 20px rgba(16, 24, 40, 0.08);
+  --shadow-popover: 0 4px 12px rgba(16, 24, 40, 0.08), 0 12px 32px rgba(16, 24, 40, 0.12);
 }
 
 *,
