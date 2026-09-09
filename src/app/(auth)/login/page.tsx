@@ -46,7 +46,11 @@ export default function LoginPage() {
     const { token, deepLink: link } = res.data
     setDeepLink(link)
     setStatus('waiting')
-    window.open(link, '_blank', 'noopener,noreferrer')
+    // t.me links are OS-level app launches, not real page loads — navigating
+    // the current tab (rather than window.open) triggers Telegram without
+    // leaving a blank tab behind; the browser intercepts it before any
+    // actual navigation happens.
+    window.location.href = link
 
     const deadline = Date.now() + 5 * 60 * 1000
     pollTimer.current = setInterval(async () => {
@@ -109,12 +113,10 @@ export default function LoginPage() {
         {status === 'waiting' && (
           <div className="text-center space-y-3">
             <p className="text-sm" style={{ color: '#1f7a5a' }}>
-              Telegram opened in a new tab — tap the &ldquo;Log in to Aroge&rdquo; button there.
+              Telegram should have opened — tap the &ldquo;Log in to Aroge&rdquo; button there.
             </p>
             <a
               href={deepLink}
-              target="_blank"
-              rel="noopener noreferrer"
               className="text-xs underline"
               style={{ color: '#1f7a5a' }}
             >
