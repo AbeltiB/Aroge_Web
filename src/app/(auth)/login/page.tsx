@@ -6,26 +6,10 @@ import { api } from '../../../lib/api'
 import { useAuthStore } from '../../../store/auth.store'
 import type { JwtAdminPayload } from '@arogenpm/sdk'
 
-type StartResponse = { token: string; botId: string; expiresIn: number }
+type StartResponse = { token: string; deepLink: string; expiresIn: number }
 type PollResponse =
   | { status: 'pending' }
   | { status: 'verified'; accessToken: string; admin: JwtAdminPayload & { name: string } }
-
-// oauth.telegram.org's own full-page auth screen — QR code, "Open Telegram
-// Desktop" handoff, and phone number all as real options in one place. The
-// embeddable Login Widget loads this same URL with &embed=1, which drops
-// the QR/desktop options and defaults straight to phone entry — that's why
-// this app links here directly instead of using the widget script.
-function buildTelegramAuthUrl(botId: string, returnTo: string): string {
-  const origin = window.location.origin
-  const params = new URLSearchParams({
-    bot_id: botId,
-    origin,
-    request_access: 'write',
-    return_to: returnTo,
-  })
-  return `https://oauth.telegram.org/auth?${params.toString()}`
-}
 
 export default function LoginPage() {
   const router = useRouter()
@@ -33,7 +17,7 @@ export default function LoginPage() {
   const pollTimer = useRef<ReturnType<typeof setInterval> | null>(null)
   const [error, setError] = useState('')
   const [status, setStatus] = useState<'idle' | 'starting' | 'waiting' | 'signing-in'>('idle')
-  const [authUrl, setAuthUrl] = useState('')
+  const [deepLink, setDeepLink] = useState('')
 
   useEffect(() => {
     return () => {
@@ -41,6 +25,13 @@ export default function LoginPage() {
     }
   }, [])
 
+  // Opens the bot's own chat (reliably launches the Telegram app itself,
+  // even cold) instead of oauth.telegram.org — that page's QR/desktop-app
+  // handoff only works when the browser happens to have an active Telegram
+  // Web session, which isn't something a site can guarantee. Once in the
+  // chat, the bot replies with a Telegram "Login URL" button, which shows
+  // the native Log in/Decline confirmation from inside the Telegram client
+  // itself instead.
   async function startLogin() {
     setError('')
     setStatus('starting')
@@ -52,12 +43,10 @@ export default function LoginPage() {
       return
     }
 
-    const { token, botId } = res.data
-    const returnTo = `${window.location.origin}/login/callback?token=${token}`
-    const url = buildTelegramAuthUrl(botId, returnTo)
-    setAuthUrl(url)
+    const { token, deepLink: link } = res.data
+    setDeepLink(link)
     setStatus('waiting')
-    window.open(url, '_blank', 'noopener,noreferrer')
+    window.open(link, '_blank', 'noopener,noreferrer')
 
     const deadline = Date.now() + 5 * 60 * 1000
     pollTimer.current = setInterval(async () => {
@@ -110,10 +99,10 @@ export default function LoginPage() {
         {status === 'waiting' && (
           <div className="text-center space-y-3">
             <p className="text-sm" style={{ color: '#1f7a5a' }}>
-              Confirm in the Telegram tab that just opened…
+              Telegram opened in a new tab — tap the &ldquo;Log in to Aroge&rdquo; button there.
             </p>
             <a
-              href={authUrl}
+              href={deepLink}
               target="_blank"
               rel="noopener noreferrer"
               className="text-xs underline"
