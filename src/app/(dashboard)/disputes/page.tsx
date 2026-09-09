@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
 import { formatETB } from '@arogenpm/sdk'
+import { PageHeader, Card, Button, LoadingState, EmptyState } from '../../../components/ui'
+import { ShieldCheck } from 'lucide-react'
 
 interface DisputeOrder {
   id: string
@@ -61,51 +63,48 @@ export default function DisputesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold" style={{ color: '#1a3028' }}>Disputes</h2>
-        <span className="text-sm" style={{ color: '#444' }}>{data?.total ?? 0} open</span>
-      </div>
+    <div className="space-y-5">
+      <PageHeader title="Disputes" subtitle={`${data?.total ?? 0} open`} />
 
-      {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
-        <div className="grid grid-cols-2 gap-4">
+      {loading ? <LoadingState /> : !data?.items.length ? (
+        <Card><EmptyState icon={ShieldCheck} title="No open disputes" subtitle="The marketplace is healthy right now." /></Card>
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
           <div className="space-y-2">
-            {data?.items.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setSelected(d)}
-                className="w-full text-left bg-white rounded-xl p-4 shadow-sm border-2 transition-all"
-                style={{ borderColor: selected?.id === d.id ? '#B85C2A' : 'transparent' }}
-              >
-                <p className="font-medium text-sm" style={{ color: '#1a3028' }}>{d.listing.title}</p>
-                <p className="text-xs mt-1" style={{ color: '#888' }}>
-                  {d.buyer.name} → {d.seller.name}
-                </p>
-                <p className="text-xs mt-1 font-medium" style={{ color: '#c89b3c' }}>
-                  {formatETB(d.amount)}
-                </p>
-              </button>
-            ))}
+            {data.items.map((d) => {
+              const active = selected?.id === d.id
+              return (
+                <button
+                  key={d.id}
+                  onClick={() => setSelected(d)}
+                  className={`w-full text-left rounded-2xl p-4 border-2 transition-all shadow-[var(--shadow-card)] ${
+                    active ? 'bg-action-50 border-action-400' : 'bg-white border-transparent hover:border-canvas-400'
+                  }`}
+                >
+                  <p className="font-semibold text-sm text-ink-900">{d.listing.title}</p>
+                  <p className="text-xs mt-1 text-ink-400">{d.buyer.name} → {d.seller.name}</p>
+                  <p className="text-xs mt-1 font-bold text-value-700">{formatETB(d.amount)}</p>
+                </button>
+              )
+            })}
           </div>
 
           {selected && (
-            <div className="bg-white rounded-xl p-5 shadow-sm space-y-4">
-              <h3 className="font-semibold" style={{ color: '#1a3028' }}>{selected.listing.title}</h3>
+            <Card padded className="space-y-4">
+              <h3 className="font-bold text-ink-900">{selected.listing.title}</h3>
 
-              <div className="text-sm space-y-1" style={{ color: '#444' }}>
-                <p><span style={{ color: 'rgba(31,122,90,0.6)' }}>Buyer:</span> {selected.buyer.name}</p>
-                <p><span style={{ color: 'rgba(31,122,90,0.6)' }}>Seller:</span> {selected.seller.name}</p>
-                <p><span style={{ color: 'rgba(31,122,90,0.6)' }}>Amount:</span> <span style={{ color: '#c89b3c' }}>{formatETB(selected.amount)}</span></p>
+              <div className="text-sm space-y-1 text-ink-700">
+                <p><span className="text-ink-400">Buyer:</span> {selected.buyer.name}</p>
+                <p><span className="text-ink-400">Seller:</span> {selected.seller.name}</p>
+                <p><span className="text-ink-400">Amount:</span> <span className="font-semibold text-value-700">{formatETB(selected.amount)}</span></p>
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'rgba(31,122,90,0.6)' }}>
-                  Escrow History
-                </p>
+                <p className="text-xs font-bold uppercase tracking-wide mb-2 text-ink-400">Escrow History</p>
                 <div className="space-y-1">
                   {selected.escrowEvents.map((ev) => (
-                    <div key={ev.id} className="text-xs" style={{ color: '#444' }}>
-                      <span className="font-medium">{ev.eventType}</span>
+                    <div key={ev.id} className="text-xs text-ink-700">
+                      <span className="font-semibold">{ev.eventType}</span>
                       {ev.note && <span> — {ev.note}</span>}
                     </div>
                   ))}
@@ -113,23 +112,19 @@ export default function DisputesPage() {
               </div>
 
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'rgba(31,122,90,0.6)' }}>
-                  Conversation
-                </p>
+                <p className="text-xs font-bold uppercase tracking-wide mb-2 text-ink-400">Conversation</p>
                 {messages === null ? (
-                  <p className="text-xs" style={{ color: '#888' }}>Loading…</p>
+                  <p className="text-xs text-ink-400">Loading…</p>
                 ) : messages.length === 0 ? (
-                  <p className="text-xs" style={{ color: '#888' }}>No messages between buyer and seller.</p>
+                  <p className="text-xs text-ink-400">No messages between buyer and seller.</p>
                 ) : (
                   <div className="space-y-1.5 max-h-64 overflow-y-auto">
                     {messages.map((m) => {
                       const isBuyer = m.senderId === selected.buyer.id
                       return (
-                        <div key={m.id} className="text-xs rounded-lg p-2" style={{ background: isBuyer ? '#f3efe7' : '#e6f0eb' }}>
-                          <span className="font-medium" style={{ color: isBuyer ? '#3d2a10' : '#1f7a5a' }}>
-                            {m.sender.name}:
-                          </span>{' '}
-                          <span style={{ color: '#1a3028' }}>{m.mediaKey ? '📷 Photo' : m.body}</span>
+                        <div key={m.id} className={`text-xs rounded-lg p-2.5 ${isBuyer ? 'bg-value-50' : 'bg-brand-50'}`}>
+                          <span className={`font-semibold ${isBuyer ? 'text-value-800' : 'text-brand-700'}`}>{m.sender.name}:</span>{' '}
+                          <span className="text-ink-900">{m.mediaKey ? '📷 Photo' : m.body}</span>
                         </div>
                       )
                     })}
@@ -138,24 +133,14 @@ export default function DisputesPage() {
               </div>
 
               <div className="flex gap-3 pt-2">
-                <button
-                  disabled={acting}
-                  onClick={() => act('release')}
-                  className="flex-1 py-2 rounded-lg text-sm font-medium"
-                  style={{ background: '#1f7a5a', color: '#f3efe7' }}
-                >
+                <Button variant="primary" disabled={acting} onClick={() => act('release')} className="flex-1">
                   Release to Seller
-                </button>
-                <button
-                  disabled={acting}
-                  onClick={() => act('refund')}
-                  className="flex-1 py-2 rounded-lg text-sm font-medium"
-                  style={{ background: 'rgba(184,92,42,0.10)', color: '#B85C2A' }}
-                >
+                </Button>
+                <Button variant="danger" disabled={acting} onClick={() => act('refund')} className="flex-1">
                   Refund Buyer
-                </button>
+                </Button>
               </div>
-            </div>
+            </Card>
           )}
         </div>
       )}
