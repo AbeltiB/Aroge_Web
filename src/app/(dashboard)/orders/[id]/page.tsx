@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api } from '../../../../lib/api'
 import { formatETB } from '@arogenpm/sdk'
+import { Card, CardTitle, Button, StatusBadge, LoadingState } from '../../../../components/ui'
+import { ArrowLeft } from 'lucide-react'
 
 interface OrderDetail {
   id: string
@@ -45,15 +47,6 @@ interface OrderMessage {
   createdAt: string
   senderId: string
   sender: { id: string; name: string }
-}
-
-const STATUS_COLORS: Record<string, { bg: string; color: string }> = {
-  PENDING_PAYMENT: { bg: '#faeeda', color: '#3d2a10' },
-  PAID_ESCROWED: { bg: '#e6f0eb', color: '#1f7a5a' },
-  IN_TRANSIT: { bg: '#e6f0eb', color: '#174d39' },
-  COMPLETED: { bg: '#e6f0eb', color: '#174d39' },
-  DISPUTED: { bg: 'rgba(184,92,42,0.12)', color: '#B85C2A' },
-  REFUNDED: { bg: '#f5f5f5', color: '#888' },
 }
 
 export default function OrderDetailPage() {
@@ -113,164 +106,145 @@ export default function OrderDetailPage() {
     load()
   }
 
-  if (loading) return <p className="text-sm text-gray-400">Loading…</p>
-  if (!order) return <p className="text-sm text-gray-400">Order not found.</p>
+  if (loading) return <LoadingState />
+  if (!order) return <p className="text-sm text-ink-400">Order not found.</p>
 
   const itemLabel = order.bundle ? `Bundle (${order.bundle.items.length} items)` : order.listing?.title ?? '—'
-  const sc = STATUS_COLORS[order.orderStatus] ?? { bg: '#f5f5f5', color: '#888' }
   const total = order.amount + order.deliveryFee + order.serviceFee
 
   return (
     <div className="space-y-4 max-w-3xl">
       <div className="flex items-center gap-3">
-        <button onClick={() => router.back()} className="text-sm" style={{ color: '#1f7a5a' }}>← Back</button>
-        <h2 className="text-xl font-bold" style={{ color: '#1a3028' }}>Order Detail</h2>
+        <button onClick={() => router.back()} className="flex items-center gap-1 text-sm font-medium text-brand-600 hover:text-brand-700">
+          <ArrowLeft size={15} /> Back
+        </button>
+        <h2 className="text-xl font-bold text-ink-900">Order Detail</h2>
       </div>
 
-      <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
+      <Card padded className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="font-semibold" style={{ color: '#1a3028' }}>{itemLabel}</h3>
-          <span className="px-2 py-0.5 rounded-full text-xs" style={sc}>{order.orderStatus}</span>
+          <CardTitle className="text-base">{itemLabel}</CardTitle>
+          <StatusBadge status={order.orderStatus} />
         </div>
-        <div className="grid grid-cols-2 gap-4 text-sm">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
           <div>
-            <p style={{ color: 'rgba(31,122,90,0.6)' }}>Buyer</p>
-            <p style={{ color: '#1a3028' }}>{order.buyer.name} {order.buyer.city ? `· ${order.buyer.city}` : ''}</p>
+            <p className="text-ink-400">Buyer</p>
+            <p className="text-ink-900">{order.buyer.name} {order.buyer.city ? `· ${order.buyer.city}` : ''}</p>
           </div>
           <div>
-            <p style={{ color: 'rgba(31,122,90,0.6)' }}>Seller</p>
-            <p style={{ color: '#1a3028' }}>{order.seller.name} {order.seller.city ? `· ${order.seller.city}` : ''}</p>
+            <p className="text-ink-400">Seller</p>
+            <p className="text-ink-900">{order.seller.name} {order.seller.city ? `· ${order.seller.city}` : ''}</p>
           </div>
           <div>
-            <p style={{ color: 'rgba(31,122,90,0.6)' }}>Payment Method</p>
-            <p style={{ color: '#1a3028' }}>{order.paymentMethod}</p>
+            <p className="text-ink-400">Payment Method</p>
+            <p className="text-ink-900">{order.paymentMethod}</p>
           </div>
           <div>
-            <p style={{ color: 'rgba(31,122,90,0.6)' }}>Delivery Method</p>
-            <p style={{ color: '#1a3028' }}>{order.deliveryMethod}</p>
+            <p className="text-ink-400">Delivery Method</p>
+            <p className="text-ink-900">{order.deliveryMethod}</p>
           </div>
         </div>
 
-        <div className="border-t pt-3 space-y-1 text-sm" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-          <div className="flex justify-between"><span style={{ color: '#444' }}>Item price</span><span style={{ color: '#444' }}>{formatETB(order.amount)}</span></div>
+        <div className="border-t border-canvas-300/60 pt-3 space-y-1 text-sm">
+          <div className="flex justify-between text-ink-700"><span>Item price</span><span>{formatETB(order.amount)}</span></div>
           {order.deliveryFee > 0 && (
-            <div className="flex justify-between"><span style={{ color: '#444' }}>Delivery fee</span><span style={{ color: '#444' }}>{formatETB(order.deliveryFee)}</span></div>
+            <div className="flex justify-between text-ink-700"><span>Delivery fee</span><span>{formatETB(order.deliveryFee)}</span></div>
           )}
           {order.feeSnapshot?.map((f) => (
-            <div key={f.feeId} className="flex justify-between"><span style={{ color: '#444' }}>{f.name}</span><span style={{ color: '#444' }}>{formatETB(f.amount)}</span></div>
+            <div key={f.feeId} className="flex justify-between text-ink-700"><span>{f.name}</span><span>{formatETB(f.amount)}</span></div>
           ))}
-          <div className="flex justify-between font-semibold pt-1"><span style={{ color: '#1a3028' }}>Total</span><span style={{ color: '#c89b3c' }}>{formatETB(total)}</span></div>
+          <div className="flex justify-between font-semibold pt-1"><span className="text-ink-900">Total</span><span className="text-value-700">{formatETB(total)}</span></div>
         </div>
-      </div>
+      </Card>
 
       {order.payment && (
-        <div className="bg-white rounded-xl shadow-sm p-5 space-y-3">
-          <h3 className="font-semibold" style={{ color: '#1a3028' }}>Payment</h3>
-          <div className="grid grid-cols-2 gap-4 text-sm">
+        <Card padded className="space-y-3">
+          <CardTitle className="text-base">Payment</CardTitle>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
             <div>
-              <p style={{ color: 'rgba(31,122,90,0.6)' }}>Gateway</p>
-              <p style={{ color: '#1a3028' }}>{order.payment.gateway}</p>
+              <p className="text-ink-400">Gateway</p>
+              <p className="text-ink-900">{order.payment.gateway}</p>
             </div>
             <div>
-              <p style={{ color: 'rgba(31,122,90,0.6)' }}>Status</p>
-              <p style={{ color: '#1a3028' }}>{order.payment.status}</p>
+              <p className="text-ink-400">Status</p>
+              <p className="text-ink-900">{order.payment.status}</p>
             </div>
             {order.payment.gatewayRef && (
-              <div className="col-span-2">
-                <p style={{ color: 'rgba(31,122,90,0.6)' }}>Gateway Ref</p>
-                <p className="font-mono text-xs" style={{ color: '#888' }}>{order.payment.gatewayRef}</p>
+              <div className="sm:col-span-2">
+                <p className="text-ink-400">Gateway Ref</p>
+                <p className="font-mono text-xs text-ink-500">{order.payment.gatewayRef}</p>
               </div>
             )}
           </div>
 
           {order.payment.gateway === 'BANK_TRANSFER' && order.payment.status === 'PENDING' && order.payment.proofUploadedAt && (
             <div className="flex gap-2 pt-2">
-              <button onClick={viewProof} className="text-xs px-3 py-1.5 rounded" style={{ background: '#f3efe7', color: '#1f7a5a' }}>
-                View Proof
-              </button>
-              <button disabled={acting} onClick={verifyTransfer} className="text-xs px-3 py-1.5 rounded" style={{ background: '#1f7a5a', color: '#f3efe7' }}>
-                Verify
-              </button>
-              <button disabled={acting} onClick={rejectTransfer} className="text-xs px-3 py-1.5 rounded" style={{ background: '#B85C2A', color: '#fff' }}>
-                Reject
-              </button>
+              <Button size="sm" variant="secondary" onClick={viewProof}>View Proof</Button>
+              <Button size="sm" variant="primary" disabled={acting} onClick={verifyTransfer}>Verify</Button>
+              <Button size="sm" variant="danger" disabled={acting} onClick={rejectTransfer}>Reject</Button>
             </div>
           )}
           {order.payment.gateway === 'BANK_TRANSFER' && order.payment.status === 'PENDING' && !order.payment.proofUploadedAt && (
-            <p className="text-xs" style={{ color: '#888' }}>Buyer has not uploaded a transfer proof yet.</p>
+            <p className="text-xs text-ink-400">Buyer has not uploaded a transfer proof yet.</p>
           )}
-        </div>
+        </Card>
       )}
 
       {order.delivery && (
-        <div className="bg-white rounded-xl shadow-sm p-5 space-y-2">
-          <h3 className="font-semibold" style={{ color: '#1a3028' }}>Delivery</h3>
-          <p className="text-sm" style={{ color: '#444' }}>Status: {order.delivery.status}</p>
-          <p className="text-sm" style={{ color: '#444' }}>Pickup: {order.delivery.pickupAddress}</p>
-          <p className="text-sm" style={{ color: '#444' }}>Drop-off: {order.delivery.dropoffAddress}</p>
+        <Card padded className="space-y-1.5">
+          <CardTitle className="text-base mb-1">Delivery</CardTitle>
+          <p className="text-sm text-ink-700">Status: {order.delivery.status}</p>
+          <p className="text-sm text-ink-700">Pickup: {order.delivery.pickupAddress}</p>
+          <p className="text-sm text-ink-700">Drop-off: {order.delivery.dropoffAddress}</p>
           {order.delivery.rejectedReason && (
-            <p className="text-xs" style={{ color: '#B85C2A' }}>Rejected: {order.delivery.rejectedReason}</p>
+            <p className="text-xs text-action-600">Rejected: {order.delivery.rejectedReason}</p>
           )}
-        </div>
+        </Card>
       )}
 
-      <div className="bg-white rounded-xl shadow-sm p-5 space-y-2">
-        <h3 className="font-semibold" style={{ color: '#1a3028' }}>Escrow History</h3>
+      <Card padded className="space-y-2">
+        <CardTitle className="text-base mb-1">Escrow History</CardTitle>
         {order.escrowEvents.length === 0 ? (
-          <p className="text-sm" style={{ color: '#888' }}>No events yet.</p>
+          <p className="text-sm text-ink-400">No events yet.</p>
         ) : order.escrowEvents.map((ev) => (
-          <div key={ev.id} className="text-xs border-t pt-2" style={{ borderColor: 'rgba(31,122,90,0.06)', color: '#444' }}>
-            <span className="font-medium" style={{ color: '#1f7a5a' }}>{ev.eventType}</span>
+          <div key={ev.id} className="text-xs border-t border-canvas-300/60 pt-2 text-ink-700">
+            <span className="font-semibold text-brand-600">{ev.eventType}</span>
             {ev.note && <span> — {ev.note}</span>}
-            <span className="ml-2" style={{ color: '#888' }}>{new Date(ev.createdAt).toLocaleString()}</span>
+            <span className="ml-2 text-ink-400">{new Date(ev.createdAt).toLocaleString()}</span>
           </div>
         ))}
-      </div>
+      </Card>
 
-      <div className="bg-white rounded-xl shadow-sm p-5 space-y-2">
-        <h3 className="font-semibold" style={{ color: '#1a3028' }}>Conversation</h3>
+      <Card padded className="space-y-2">
+        <CardTitle className="text-base mb-1">Conversation</CardTitle>
         {messages === null ? (
-          <p className="text-sm" style={{ color: '#888' }}>Loading…</p>
+          <p className="text-sm text-ink-400">Loading…</p>
         ) : messages.length === 0 ? (
-          <p className="text-sm" style={{ color: '#888' }}>No messages between buyer and seller for this order.</p>
+          <p className="text-sm text-ink-400">No messages between buyer and seller for this order.</p>
         ) : (
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {messages.map((m) => {
               const isBuyer = m.senderId === order.buyer.id
               return (
-                <div key={m.id} className="text-sm rounded-lg p-2.5" style={{ background: isBuyer ? '#f3efe7' : '#e6f0eb' }}>
+                <div key={m.id} className={`text-sm rounded-lg p-2.5 ${isBuyer ? 'bg-value-50' : 'bg-brand-50'}`}>
                   <div className="flex justify-between items-baseline mb-0.5">
-                    <span className="font-medium text-xs" style={{ color: isBuyer ? '#3d2a10' : '#1f7a5a' }}>
+                    <span className={`font-semibold text-xs ${isBuyer ? 'text-value-800' : 'text-brand-700'}`}>
                       {m.sender.name} {isBuyer ? '(buyer)' : '(seller)'}
                     </span>
-                    <span className="text-xs" style={{ color: '#888' }}>{new Date(m.createdAt).toLocaleString()}</span>
+                    <span className="text-xs text-ink-400">{new Date(m.createdAt).toLocaleString()}</span>
                   </div>
-                  <p style={{ color: '#1a3028' }}>{m.mediaKey ? '📷 Photo' : m.body}</p>
+                  <p className="text-ink-900">{m.mediaKey ? '📷 Photo' : m.body}</p>
                 </div>
               )
             })}
           </div>
         )}
-      </div>
+      </Card>
 
       {order.orderStatus === 'DISPUTED' && (
         <div className="flex gap-3">
-          <button
-            disabled={acting}
-            onClick={() => actEscrow('release')}
-            className="flex-1 py-2 rounded-lg text-sm font-medium"
-            style={{ background: '#1f7a5a', color: '#f3efe7' }}
-          >
-            Release to Seller
-          </button>
-          <button
-            disabled={acting}
-            onClick={() => actEscrow('refund')}
-            className="flex-1 py-2 rounded-lg text-sm font-medium"
-            style={{ background: 'rgba(184,92,42,0.10)', color: '#B85C2A' }}
-          >
-            Refund Buyer
-          </button>
+          <Button variant="primary" disabled={acting} onClick={() => actEscrow('release')} className="flex-1">Release to Seller</Button>
+          <Button variant="danger" disabled={acting} onClick={() => actEscrow('refund')} className="flex-1">Refund Buyer</Button>
         </div>
       )}
     </div>
