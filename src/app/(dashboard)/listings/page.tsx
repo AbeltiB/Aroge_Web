@@ -4,17 +4,15 @@ import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
 import { formatETB } from '@arogenpm/sdk'
 import type { Listing } from '@arogenpm/sdk'
+import { PageHeader, FilterChips, Table, THead, Th, Tr, Td, Button, LoadingState, EmptyState, Card } from '../../../components/ui'
+import { Package } from 'lucide-react'
 
 interface ListingsRes { items: (Listing & { seller?: { id: string; name: string } })[]; total: number }
 
-const TABS = [
-  { key: 'ACTIVE', label: 'Active' },
-  { key: 'DRAFT', label: 'Draft' },
-  { key: 'RESERVED', label: 'Reserved' },
-  { key: 'SOLD', label: 'Sold' },
-  { key: 'FLAGGED', label: 'Flagged' },
-  { key: 'REMOVED', label: 'Removed' },
-]
+const TABS = ['ACTIVE', 'DRAFT', 'RESERVED', 'SOLD', 'FLAGGED', 'REMOVED']
+const TAB_LABELS: Record<string, string> = {
+  ACTIVE: 'Active', DRAFT: 'Draft', RESERVED: 'Reserved', SOLD: 'Sold', FLAGGED: 'Flagged', REMOVED: 'Removed',
+}
 
 export default function ListingsPage() {
   const [data, setData] = useState<ListingsRes | null>(null)
@@ -68,108 +66,55 @@ export default function ListingsPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold" style={{ color: '#1a3028' }}>Listings</h2>
-        <span className="text-sm" style={{ color: '#444' }}>{data?.total ?? 0} results</span>
-      </div>
+    <div className="space-y-5">
+      <PageHeader title="Listings" subtitle={`${data?.total ?? 0} results`} />
 
-      <div className="flex gap-2 flex-wrap">
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            onClick={() => { setTab(t.key); load(t.key) }}
-            className="px-3 py-1 rounded-full text-xs font-medium"
-            style={tab === t.key
-              ? { background: '#1f7a5a', color: '#f3efe7' }
-              : { background: '#f3efe7', color: '#1f7a5a' }}
-          >
-            {t.label}
-          </button>
-        ))}
-      </div>
+      <FilterChips options={TABS} value={tab} onChange={(t) => { setTab(t); load(t) }} labels={TAB_LABELS} />
 
-      {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: '#f3efe7', color: 'rgba(31,122,90,0.6)' }}>
-                <th className="text-left px-4 py-3">Title</th>
-                <th className="text-left px-4 py-3">Seller</th>
-                <th className="text-left px-4 py-3">Price</th>
-                <th className="text-left px-4 py-3">Condition</th>
-                <th className="text-left px-4 py-3">City</th>
-                <th className="text-left px-4 py-3">Listed</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items.map((l) => (
-                <tr key={l.id} className="border-t" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-                  <td className="px-4 py-3 font-medium max-w-xs truncate" style={{ color: '#1a3028' }}>
-                    {l.title}
-                  </td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{l.seller?.name ?? '—'}</td>
-                  <td className="px-4 py-3 font-medium" style={{ color: '#c89b3c' }}>
-                    {formatETB(l.price)}
-                  </td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{l.condition}</td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{l.city ?? '—'}</td>
-                  <td className="px-4 py-3" style={{ color: '#888' }}>
-                    {new Date(l.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex gap-2 justify-end">
-                      {tab === 'FLAGGED' && (
-                        <button
-                          onClick={() => approve(l.id)}
-                          disabled={actingId === l.id}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ color: '#1f7a5a', background: 'rgba(31,122,90,0.1)' }}
-                        >
-                          Approve
-                        </button>
-                      )}
-                      {tab === 'REMOVED' && (
-                        <button
-                          onClick={() => restore(l.id)}
-                          disabled={actingId === l.id}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ color: '#1f7a5a', background: 'rgba(31,122,90,0.1)' }}
-                        >
-                          Restore
-                        </button>
-                      )}
-                      {tab !== 'FLAGGED' && tab !== 'REMOVED' && (
-                        <button
-                          onClick={() => flag(l.id)}
-                          disabled={actingId === l.id}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ color: '#3d2a10', background: '#faeeda' }}
-                        >
-                          Flag
-                        </button>
-                      )}
-                      {tab !== 'REMOVED' && (
-                        <button
-                          onClick={() => remove(l.id)}
-                          disabled={actingId === l.id}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ color: '#B85C2A', background: 'rgba(184,92,42,0.08)' }}
-                        >
-                          Remove
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {data?.items.length === 0 && (
-                <tr><td colSpan={7} className="px-4 py-6 text-center text-gray-400">No listings here.</td></tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+      {loading ? <LoadingState /> : !data?.items.length ? (
+        <Card><EmptyState icon={Package} title="No listings here" /></Card>
+      ) : (
+        <Table>
+          <THead>
+            <tr>
+              <Th>Title</Th>
+              <Th>Seller</Th>
+              <Th>Price</Th>
+              <Th>Condition</Th>
+              <Th>City</Th>
+              <Th>Listed</Th>
+              <Th />
+            </tr>
+          </THead>
+          <tbody>
+            {data.items.map((l) => (
+              <Tr key={l.id}>
+                <Td className="font-semibold max-w-xs truncate text-ink-900">{l.title}</Td>
+                <Td>{l.seller?.name ?? '—'}</Td>
+                <Td className="font-semibold text-value-700">{formatETB(l.price)}</Td>
+                <Td>{l.condition}</Td>
+                <Td>{l.city ?? '—'}</Td>
+                <Td className="text-ink-400">{new Date(l.createdAt).toLocaleDateString()}</Td>
+                <Td className="text-right">
+                  <div className="flex gap-1.5 justify-end">
+                    {tab === 'FLAGGED' && (
+                      <Button size="sm" variant="primary" onClick={() => approve(l.id)} disabled={actingId === l.id}>Approve</Button>
+                    )}
+                    {tab === 'REMOVED' && (
+                      <Button size="sm" variant="primary" onClick={() => restore(l.id)} disabled={actingId === l.id}>Restore</Button>
+                    )}
+                    {tab !== 'FLAGGED' && tab !== 'REMOVED' && (
+                      <Button size="sm" variant="secondary" className="!bg-value-100 !text-value-800 !border-transparent" onClick={() => flag(l.id)} disabled={actingId === l.id}>Flag</Button>
+                    )}
+                    {tab !== 'REMOVED' && (
+                      <Button size="sm" variant="danger" onClick={() => remove(l.id)} disabled={actingId === l.id}>Remove</Button>
+                    )}
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   )

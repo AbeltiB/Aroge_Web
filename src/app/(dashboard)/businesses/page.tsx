@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
 import type { Business } from '@arogenpm/sdk'
+import { PageHeader, Table, THead, Th, Tr, Td, Badge, Button, LoadingState, EmptyState, Card } from '../../../components/ui'
+import { Building2 } from 'lucide-react'
 
 interface BusinessesRes { items: (Business & { rep: { id: string; name: string; telegramId: string } })[]; total: number }
 
@@ -33,75 +35,54 @@ export default function BusinessesPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold" style={{ color: '#1a3028' }}>Businesses</h2>
-        <label className="flex items-center gap-2 text-sm cursor-pointer" style={{ color: '#444' }}>
-          <input
-            type="checkbox"
-            checked={unverifiedOnly}
-            onChange={(e) => { setUnverifiedOnly(e.target.checked); load(e.target.checked) }}
-            className="rounded"
-          />
-          Pending verification only
-        </label>
-      </div>
+    <div className="space-y-5">
+      <PageHeader
+        title="Businesses"
+        actions={
+          <label className="flex items-center gap-2 text-sm text-ink-500 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={unverifiedOnly}
+              onChange={(e) => { setUnverifiedOnly(e.target.checked); load(e.target.checked) }}
+              className="rounded accent-brand-500"
+            />
+            Pending verification only
+          </label>
+        }
+      />
 
-      {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: '#f3efe7', color: 'rgba(31,122,90,0.6)' }}>
-                <th className="text-left px-4 py-3">Business Name</th>
-                <th className="text-left px-4 py-3">Type</th>
-                <th className="text-left px-4 py-3">Rep</th>
-                <th className="text-left px-4 py-3">City</th>
-                <th className="text-left px-4 py-3">Status</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items.map((b) => (
-                <tr key={b.id} className="border-t" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-                  <td className="px-4 py-3 font-medium" style={{ color: '#1a3028' }}>{b.name}</td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{b.type}</td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{b.rep?.name}</td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{b.city ?? '—'}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="px-2 py-0.5 rounded-full text-xs"
-                      style={b.verifiedAt
-                        ? { background: '#e6f0eb', color: '#1f7a5a' }
-                        : { background: '#faeeda', color: '#3d2a10' }}
-                    >
-                      {b.verifiedAt ? 'Verified' : 'Pending'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex gap-2 justify-end">
-                      <button
-                        onClick={() => viewLicense(b.id)}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ background: '#f3efe7', color: '#1f7a5a' }}
-                      >
-                        View License
-                      </button>
-                      {!b.verifiedAt && (
-                        <button
-                          onClick={() => verify(b.id)}
-                          className="text-xs px-2 py-1 rounded"
-                          style={{ background: '#1f7a5a', color: '#f3efe7' }}
-                        >
-                          Verify
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {loading ? <LoadingState /> : !data?.items.length ? (
+        <Card><EmptyState icon={Building2} title="No businesses found" /></Card>
+      ) : (
+        <Table>
+          <THead>
+            <tr>
+              <Th>Business Name</Th>
+              <Th>Type</Th>
+              <Th>Rep</Th>
+              <Th>City</Th>
+              <Th>Status</Th>
+              <Th />
+            </tr>
+          </THead>
+          <tbody>
+            {data.items.map((b) => (
+              <Tr key={b.id}>
+                <Td className="font-semibold text-ink-900">{b.name}</Td>
+                <Td>{b.type}</Td>
+                <Td>{b.rep?.name}</Td>
+                <Td>{b.city ?? '—'}</Td>
+                <Td><Badge tone={b.verifiedAt ? 'brand' : 'value'}>{b.verifiedAt ? 'Verified' : 'Pending'}</Badge></Td>
+                <Td className="text-right">
+                  <div className="flex gap-1.5 justify-end">
+                    <Button size="sm" variant="secondary" onClick={() => viewLicense(b.id)}>View License</Button>
+                    {!b.verifiedAt && <Button size="sm" variant="primary" onClick={() => verify(b.id)}>Verify</Button>}
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   )

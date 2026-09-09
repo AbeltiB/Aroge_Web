@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
 import type { User } from '@arogenpm/sdk'
+import { PageHeader, Table, THead, Th, Tr, Td, Badge, Button, Input, LoadingState, EmptyState, Card } from '../../../components/ui'
+import { Search, Users as UsersIcon } from 'lucide-react'
 
 interface UsersRes { items: User[]; total: number; page: number }
 
@@ -28,72 +30,53 @@ export default function UsersPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold" style={{ color: '#1a3028' }}>Users</h2>
-        <span className="text-sm" style={{ color: '#444' }}>{data?.total ?? 0} total</span>
+    <div className="space-y-5">
+      <PageHeader title="Users" subtitle={`${data?.total ?? 0} total`} />
+
+      <div className="relative max-w-xs">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-ink-300" />
+        <Input
+          className="pl-9"
+          placeholder="Search name or Telegram ID…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && load(q)}
+        />
       </div>
 
-      <input
-        className="border rounded-lg px-3 py-2 text-sm w-64 focus:outline-none"
-        style={{ borderColor: 'rgba(31,122,90,0.12)' }}
-        placeholder="Search name or Telegram ID…"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && load(q)}
-      />
-
-      {loading ? <p className="text-sm text-gray-400">Loading…</p> : (
-        <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ background: '#f3efe7', color: 'rgba(31,122,90,0.6)' }}>
-                <th className="text-left px-4 py-3">Name</th>
-                <th className="text-left px-4 py-3">Telegram ID</th>
-                <th className="text-left px-4 py-3">City</th>
-                <th className="text-left px-4 py-3">Verified</th>
-                <th className="text-left px-4 py-3">Joined</th>
-                <th className="px-4 py-3" />
-              </tr>
-            </thead>
-            <tbody>
-              {data?.items.map((u) => (
-                <tr key={u.id} className="border-t" style={{ borderColor: 'rgba(31,122,90,0.08)' }}>
-                  <td className="px-4 py-3 font-medium" style={{ color: '#1a3028' }}>{u.name}</td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{u.telegramId}</td>
-                  <td className="px-4 py-3" style={{ color: '#444' }}>{u.city ?? '—'}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className="px-2 py-0.5 rounded-full text-xs"
-                      style={u.verified
-                        ? { background: '#e6f0eb', color: '#1f7a5a' }
-                        : { background: '#f5f5f5', color: '#888' }}
-                    >
-                      {u.verified ? 'Yes' : 'No'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3" style={{ color: '#888' }}>
-                    {new Date(u.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    {!u.deletedAt && (
-                      <button
-                        onClick={() => ban(u.id)}
-                        className="text-xs px-2 py-1 rounded"
-                        style={{ color: '#B85C2A', background: 'rgba(184,92,42,0.08)' }}
-                      >
-                        Ban
-                      </button>
-                    )}
-                    {u.deletedAt && (
-                      <span className="text-xs text-red-400">Banned</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+      {loading ? <LoadingState /> : !data?.items.length ? (
+        <Card><EmptyState icon={UsersIcon} title="No users found" /></Card>
+      ) : (
+        <Table>
+          <THead>
+            <tr>
+              <Th>Name</Th>
+              <Th>Telegram ID</Th>
+              <Th>City</Th>
+              <Th>Verified</Th>
+              <Th>Joined</Th>
+              <Th />
+            </tr>
+          </THead>
+          <tbody>
+            {data.items.map((u) => (
+              <Tr key={u.id}>
+                <Td className="font-semibold text-ink-900">{u.name}</Td>
+                <Td>{u.telegramId}</Td>
+                <Td>{u.city ?? '—'}</Td>
+                <Td><Badge tone={u.verified ? 'brand' : 'neutral'}>{u.verified ? 'Yes' : 'No'}</Badge></Td>
+                <Td className="text-ink-400">{new Date(u.createdAt).toLocaleDateString()}</Td>
+                <Td className="text-right">
+                  {!u.deletedAt ? (
+                    <Button size="sm" variant="danger" onClick={() => ban(u.id)}>Ban</Button>
+                  ) : (
+                    <Badge tone="danger">Banned</Badge>
+                  )}
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
       )}
     </div>
   )
