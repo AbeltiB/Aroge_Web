@@ -48,6 +48,15 @@ function CallbackContent() {
         return
       }
 
+      // Mobile (marketplace) logins aren't a browser session this admin
+      // web app can complete — the token belongs to the Aroge mobile app,
+      // which is polling for it independently. Confirming here is enough;
+      // consuming the token is left entirely to the app's own poll.
+      if (params.get('intent') === 'user') {
+        setMessage("You're logged in! Return to the Aroge app to continue.")
+        return
+      }
+
       // The record was just marked verified — poll picks it up immediately,
       // with a couple of quick retries only to absorb any tiny timing gap.
       for (let attempt = 0; attempt < 3; attempt++) {
