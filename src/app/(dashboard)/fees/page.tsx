@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { api } from '../../../lib/api'
+import { PageHeader, Card, CardTitle, Table, THead, Th, Tr, Td, Badge, Button, Toggle, Modal, Field, Input, Select, LoadingState, EmptyState } from '../../../components/ui'
+import { Plus, Coins } from 'lucide-react'
 
 type FeeType = 'PERCENTAGE' | 'FLAT'
 type FeeVisibility = 'BUYER' | 'SELLER' | 'BOTH'
@@ -22,18 +24,6 @@ const VISIBILITY_LABELS: Record<FeeVisibility, string> = {
   BUYER: 'Buyer only',
   SELLER: 'Seller only',
   BOTH: 'Both',
-}
-
-const VISIBILITY_COLORS: Record<FeeVisibility, string> = {
-  BUYER: '#e6f0eb',
-  SELLER: '#faeeda',
-  BOTH: 'rgba(31,122,90,0.1)',
-}
-
-const VISIBILITY_TEXT: Record<FeeVisibility, string> = {
-  BUYER: '#1f7a5a',
-  SELLER: '#3d2a10',
-  BOTH: '#1a3028',
 }
 
 const emptyForm = {
@@ -125,307 +115,155 @@ export default function FeesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="text-2xl font-bold" style={{ color: '#1a3028' }}>Fees &amp; Charges</h1>
-          <p className="text-sm mt-1" style={{ color: 'rgba(31,122,90,0.55)' }}>
-            Manage platform fees. Toggle to show or hide from buyers and sellers.
-          </p>
-        </div>
-        <button
-          onClick={openCreate}
-          className="px-4 py-2 rounded-lg text-sm font-semibold text-white transition-opacity hover:opacity-90"
-          style={{ background: '#1f7a5a' }}
-        >
-          + Add Fee
-        </button>
-      </div>
+      <PageHeader
+        title="Fees & Charges"
+        subtitle="Manage platform fees. Toggle to show or hide from buyers and sellers."
+        actions={<Button variant="primary" size="sm" onClick={openCreate}><Plus size={14} /> Add Fee</Button>}
+      />
 
-      {/* Preview cards */}
-      <div className="grid grid-cols-2 gap-4">
-        <div className="rounded-xl p-4 border" style={{ background: '#e6f0eb', borderColor: 'rgba(31,122,90,0.15)' }}>
-          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#1f7a5a' }}>
-            What Buyers See
-          </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <Card padded className="bg-brand-50 border-brand-200">
+          <p className="text-xs font-bold uppercase tracking-wider mb-2 text-brand-700">What Buyers See</p>
           {buyerFees.length === 0
-            ? <p className="text-sm" style={{ color: 'rgba(31,122,90,0.5)' }}>No active buyer fees</p>
+            ? <p className="text-sm text-brand-600/60">No active buyer fees</p>
             : buyerFees.map((f) => (
               <div key={f.id} className="flex justify-between text-sm py-1">
-                <span style={{ color: '#1a3028' }}>{f.name}</span>
-                <span className="font-semibold" style={{ color: '#1f7a5a' }}>
-                  {f.type === 'PERCENTAGE' ? `${f.value}%` : `ETB ${f.value}`}
-                </span>
+                <span className="text-ink-900">{f.name}</span>
+                <span className="font-semibold text-brand-700">{f.type === 'PERCENTAGE' ? `${f.value}%` : `ETB ${f.value}`}</span>
               </div>
-            ))
-          }
-        </div>
-        <div className="rounded-xl p-4 border" style={{ background: '#faeeda', borderColor: 'rgba(200,155,60,0.2)' }}>
-          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{ color: '#3d2a10' }}>
-            What Sellers See
-          </p>
+            ))}
+        </Card>
+        <Card padded className="bg-value-50 border-value-200">
+          <p className="text-xs font-bold uppercase tracking-wider mb-2 text-value-800">What Sellers See</p>
           {sellerFees.length === 0
-            ? <p className="text-sm" style={{ color: 'rgba(61,42,16,0.4)' }}>No active seller fees</p>
+            ? <p className="text-sm text-value-700/50">No active seller fees</p>
             : sellerFees.map((f) => (
               <div key={f.id} className="flex justify-between text-sm py-1">
-                <span style={{ color: '#1a3028' }}>{f.name}</span>
-                <span className="font-semibold" style={{ color: '#c89b3c' }}>
-                  {f.type === 'PERCENTAGE' ? `${f.value}%` : `ETB ${f.value}`}
+                <span className="text-ink-900">{f.name}</span>
+                <span className="font-semibold text-value-700">{f.type === 'PERCENTAGE' ? `${f.value}%` : `ETB ${f.value}`}</span>
+              </div>
+            ))}
+        </Card>
+      </div>
+
+      {loading ? <LoadingState /> : fees.length === 0 ? (
+        <Card><EmptyState icon={Coins} title="No fees configured" subtitle="Add your first fee to start collecting service charges." /></Card>
+      ) : (
+        <Table>
+          <THead>
+            <tr>
+              <Th>Fee Name</Th>
+              <Th>Type</Th>
+              <Th>Value</Th>
+              <Th>Visible To</Th>
+              <Th>Order</Th>
+              <Th>Active</Th>
+              <Th>Actions</Th>
+            </tr>
+          </THead>
+          <tbody>
+            {fees.map((fee) => (
+              <Tr key={fee.id} className={fee.isActive ? '' : 'opacity-50'}>
+                <Td className="font-semibold text-ink-900">{fee.name}</Td>
+                <Td><Badge tone={fee.type === 'PERCENTAGE' ? 'brand' : 'value'}>{fee.type === 'PERCENTAGE' ? '%' : 'Flat'}</Badge></Td>
+                <Td className="font-semibold text-value-700">{fee.type === 'PERCENTAGE' ? `${fee.value}%` : `ETB ${fee.value.toLocaleString()}`}</Td>
+                <Td><Badge>{VISIBILITY_LABELS[fee.visibleTo]}</Badge></Td>
+                <Td className="text-center">{fee.displayOrder}</Td>
+                <Td><Toggle checked={fee.isActive} onChange={() => toggleActive(fee)} disabled={togglingId === fee.id} /></Td>
+                <Td>
+                  <div className="flex gap-1.5">
+                    <Button size="sm" variant="secondary" onClick={() => openEdit(fee)}>Edit</Button>
+                    <Button size="sm" variant="danger" onClick={() => deleteFee(fee.id)} disabled={deletingId === fee.id}>
+                      {deletingId === fee.id ? '…' : 'Delete'}
+                    </Button>
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </tbody>
+        </Table>
+      )}
+      <p className="text-xs text-ink-400 -mt-3">When a fee is toggled OFF, buyers and sellers never see it and it is not applied at checkout.</p>
+
+      {showForm && (
+        <Modal title={editingId ? 'Edit Fee' : 'New Fee'} onClose={() => setShowForm(false)}>
+          <Field label="Fee Name">
+            <Input placeholder="e.g. Service Fee, VAT, Platform Fee" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Type">
+              <Select className="w-full" value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value as FeeType })}>
+                <option value="PERCENTAGE">Percentage (%)</option>
+                <option value="FLAT">Flat Amount (ETB)</option>
+              </Select>
+            </Field>
+            <Field label={`Value ${form.type === 'PERCENTAGE' ? '(%)' : '(ETB)'}`}>
+              <Input
+                type="number" min="0" step={form.type === 'PERCENTAGE' ? '0.1' : '1'}
+                placeholder={form.type === 'PERCENTAGE' ? '2.5' : '50'}
+                value={form.value} onChange={(e) => setForm({ ...form, value: e.target.value })}
+              />
+            </Field>
+          </div>
+
+          <Field label="Visible To">
+            <div className="flex gap-2">
+              {(['BUYER', 'SELLER', 'BOTH'] as FeeVisibility[]).map((v) => (
+                <button
+                  key={v}
+                  onClick={() => setForm({ ...form, visibleTo: v })}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-colors ${
+                    form.visibleTo === v ? 'bg-brand-500 text-white border-brand-500' : 'text-ink-900 border-canvas-400'
+                  }`}
+                >
+                  {VISIBILITY_LABELS[v]}
+                </button>
+              ))}
+            </div>
+            <p className="text-xs mt-1.5 text-ink-400">
+              {form.visibleTo === 'BUYER' && 'Fee is shown to buyers at checkout and added to their total.'}
+              {form.visibleTo === 'SELLER' && 'Fee is shown in seller payouts (informational only).'}
+              {form.visibleTo === 'BOTH' && 'Fee is shown to both buyers at checkout and sellers in payouts.'}
+            </p>
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Display Order">
+              <Input type="number" min="0" value={form.displayOrder} onChange={(e) => setForm({ ...form, displayOrder: e.target.value })} />
+            </Field>
+            <Field label="Active">
+              <button
+                onClick={() => setForm({ ...form, isActive: !form.isActive })}
+                className={`flex items-center gap-2 h-[38px] px-3 rounded-lg border text-sm font-medium w-full ${
+                  form.isActive ? 'border-brand-500 bg-brand-50 text-brand-700' : 'border-canvas-400 text-ink-900'
+                }`}
+              >
+                <span className={`inline-block w-2.5 h-2.5 rounded-full ${form.isActive ? 'bg-brand-500' : 'bg-canvas-400'}`} />
+                {form.isActive ? 'Active' : 'Inactive'}
+              </button>
+            </Field>
+          </div>
+
+          {form.name && form.value && (
+            <div className="rounded-lg p-3 border border-brand-200 bg-brand-50/60">
+              <p className="text-xs font-semibold mb-1 text-brand-700">PREVIEW ON ETB 1,000 ITEM</p>
+              <div className="flex justify-between text-sm">
+                <span className="text-ink-900">{form.name || 'Fee'} {form.type === 'PERCENTAGE' ? `(${form.value}%)` : '(flat)'}</span>
+                <span className="font-bold text-value-700">
+                  ETB {form.type === 'PERCENTAGE' ? (1000 * Number(form.value) / 100).toFixed(2) : Number(form.value).toFixed(2)}
                 </span>
               </div>
-            ))
-          }
-        </div>
-      </div>
+            </div>
+          )}
 
-      {/* Fees table */}
-      <div className="rounded-2xl border overflow-hidden" style={{ background: 'white', borderColor: 'rgba(31,122,90,0.1)' }}>
-        {loading ? (
-          <div className="p-12 text-center text-sm" style={{ color: 'rgba(31,122,90,0.45)' }}>Loading…</div>
-        ) : fees.length === 0 ? (
-          <div className="p-12 text-center">
-            <p className="text-2xl mb-2">💰</p>
-            <p className="font-semibold" style={{ color: '#1a3028' }}>No fees configured</p>
-            <p className="text-sm mt-1" style={{ color: 'rgba(31,122,90,0.5)' }}>
-              Add your first fee to start collecting service charges.
-            </p>
+          <div className="flex gap-3 pt-2">
+            <Button variant="secondary" onClick={() => setShowForm(false)} className="flex-1">Cancel</Button>
+            <Button variant="primary" onClick={save} disabled={saving || !form.name || !form.value} className="flex-1">
+              {saving ? 'Saving…' : editingId ? 'Save Changes' : 'Create Fee'}
+            </Button>
           </div>
-        ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr style={{ borderBottom: '1px solid rgba(31,122,90,0.08)', background: 'rgba(31,122,90,0.03)' }}>
-                {['Fee Name', 'Type', 'Value', 'Visible To', 'Order', 'Active', 'Actions'].map((h) => (
-                  <th key={h} className="px-4 py-3 text-left font-semibold text-xs uppercase tracking-wide"
-                    style={{ color: 'rgba(31,122,90,0.5)' }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {fees.map((fee, i) => (
-                <tr
-                  key={fee.id}
-                  style={{
-                    borderTop: i > 0 ? '1px solid rgba(31,122,90,0.06)' : 'none',
-                    opacity: fee.isActive ? 1 : 0.5,
-                  }}
-                >
-                  <td className="px-4 py-3 font-medium" style={{ color: '#1a3028' }}>{fee.name}</td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-0.5 rounded text-xs font-semibold"
-                      style={{ background: fee.type === 'PERCENTAGE' ? '#e6f0eb' : '#faeeda', color: fee.type === 'PERCENTAGE' ? '#1f7a5a' : '#3d2a10' }}>
-                      {fee.type === 'PERCENTAGE' ? '%' : 'Flat'}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 font-semibold" style={{ color: '#c89b3c' }}>
-                    {fee.type === 'PERCENTAGE' ? `${fee.value}%` : `ETB ${fee.value.toLocaleString()}`}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span className="px-2 py-1 rounded-full text-xs font-medium"
-                      style={{ background: VISIBILITY_COLORS[fee.visibleTo], color: VISIBILITY_TEXT[fee.visibleTo] }}>
-                      {VISIBILITY_LABELS[fee.visibleTo]}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-center" style={{ color: '#1a3028' }}>{fee.displayOrder}</td>
-                  <td className="px-4 py-3">
-                    <button
-                      onClick={() => toggleActive(fee)}
-                      disabled={togglingId === fee.id}
-                      className="relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none"
-                      style={{ background: fee.isActive ? '#1f7a5a' : 'rgba(31,122,90,0.2)' }}
-                    >
-                      <span
-                        className="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"
-                        style={{ transform: fee.isActive ? 'translateX(18px)' : 'translateX(2px)' }}
-                      />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEdit(fee)}
-                        className="px-3 py-1 rounded-lg text-xs font-medium transition-opacity hover:opacity-70"
-                        style={{ background: 'rgba(31,122,90,0.1)', color: '#1f7a5a' }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => deleteFee(fee.id)}
-                        disabled={deletingId === fee.id}
-                        className="px-3 py-1 rounded-lg text-xs font-medium transition-opacity hover:opacity-70"
-                        style={{ background: 'rgba(184,92,42,0.1)', color: '#B85C2A' }}
-                      >
-                        {deletingId === fee.id ? '…' : 'Delete'}
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-        <div className="px-4 py-3 border-t text-xs" style={{ borderColor: 'rgba(31,122,90,0.06)', color: 'rgba(31,122,90,0.4)' }}>
-          When a fee is toggled OFF, buyers and sellers never see it and it is not applied at checkout.
-        </div>
-      </div>
-
-      {/* Create / Edit modal */}
-      {showForm && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center"
-          style={{ background: 'rgba(0,0,0,0.35)' }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowForm(false) }}
-        >
-          <div className="w-full max-w-md rounded-2xl p-6 space-y-4 shadow-xl" style={{ background: 'white' }}>
-            <div className="flex items-center justify-between">
-              <h2 className="text-lg font-bold" style={{ color: '#1a3028' }}>
-                {editingId ? 'Edit Fee' : 'New Fee'}
-              </h2>
-              <button onClick={() => setShowForm(false)} className="text-xl leading-none" style={{ color: 'rgba(31,122,90,0.4)' }}>✕</button>
-            </div>
-
-            {/* Name */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(31,122,90,0.5)' }}>
-                Fee Name
-              </label>
-              <input
-                className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2"
-                style={{ borderColor: 'rgba(31,122,90,0.2)', color: '#1a3028' }}
-                placeholder="e.g. Service Fee, VAT, Platform Fee"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })}
-              />
-            </div>
-
-            {/* Type + Value */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(31,122,90,0.5)' }}>Type</label>
-                <select
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
-                  style={{ borderColor: 'rgba(31,122,90,0.2)', color: '#1a3028' }}
-                  value={form.type}
-                  onChange={(e) => setForm({ ...form, type: e.target.value as FeeType })}
-                >
-                  <option value="PERCENTAGE">Percentage (%)</option>
-                  <option value="FLAT">Flat Amount (ETB)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(31,122,90,0.5)' }}>
-                  Value {form.type === 'PERCENTAGE' ? '(%)' : '(ETB)'}
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step={form.type === 'PERCENTAGE' ? '0.1' : '1'}
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
-                  style={{ borderColor: 'rgba(31,122,90,0.2)', color: '#1a3028' }}
-                  placeholder={form.type === 'PERCENTAGE' ? '2.5' : '50'}
-                  value={form.value}
-                  onChange={(e) => setForm({ ...form, value: e.target.value })}
-                />
-              </div>
-            </div>
-
-            {/* Visible To */}
-            <div>
-              <label className="block text-xs font-semibold uppercase tracking-wide mb-2" style={{ color: 'rgba(31,122,90,0.5)' }}>
-                Visible To
-              </label>
-              <div className="flex gap-2">
-                {(['BUYER', 'SELLER', 'BOTH'] as FeeVisibility[]).map((v) => (
-                  <button
-                    key={v}
-                    onClick={() => setForm({ ...form, visibleTo: v })}
-                    className="flex-1 py-2 rounded-lg text-sm font-medium border transition-colors"
-                    style={{
-                      background: form.visibleTo === v ? '#1f7a5a' : 'transparent',
-                      color: form.visibleTo === v ? 'white' : '#1a3028',
-                      borderColor: form.visibleTo === v ? '#1f7a5a' : 'rgba(31,122,90,0.2)',
-                    }}
-                  >
-                    {VISIBILITY_LABELS[v]}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs mt-1.5" style={{ color: 'rgba(31,122,90,0.45)' }}>
-                {form.visibleTo === 'BUYER' && 'Fee is shown to buyers at checkout and added to their total.'}
-                {form.visibleTo === 'SELLER' && 'Fee is shown in seller payouts (informational only).'}
-                {form.visibleTo === 'BOTH' && 'Fee is shown to both buyers at checkout and sellers in payouts.'}
-              </p>
-            </div>
-
-            {/* Display order + Active */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(31,122,90,0.5)' }}>
-                  Display Order
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none"
-                  style={{ borderColor: 'rgba(31,122,90,0.2)', color: '#1a3028' }}
-                  value={form.displayOrder}
-                  onChange={(e) => setForm({ ...form, displayOrder: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wide mb-1" style={{ color: 'rgba(31,122,90,0.5)' }}>
-                  Active
-                </label>
-                <button
-                  onClick={() => setForm({ ...form, isActive: !form.isActive })}
-                  className="flex items-center gap-2 h-[38px] px-3 rounded-lg border text-sm font-medium"
-                  style={{
-                    borderColor: form.isActive ? '#1f7a5a' : 'rgba(31,122,90,0.2)',
-                    background: form.isActive ? '#e6f0eb' : 'transparent',
-                    color: form.isActive ? '#1f7a5a' : '#1a3028',
-                  }}
-                >
-                  <span className="inline-block w-3 h-3 rounded-full" style={{ background: form.isActive ? '#1f7a5a' : 'rgba(31,122,90,0.2)' }} />
-                  {form.isActive ? 'Active' : 'Inactive'}
-                </button>
-              </div>
-            </div>
-
-            {/* Live preview */}
-            {form.name && form.value && (
-              <div className="rounded-lg p-3 border" style={{ background: 'rgba(31,122,90,0.04)', borderColor: 'rgba(31,122,90,0.12)' }}>
-                <p className="text-xs font-semibold mb-1" style={{ color: 'rgba(31,122,90,0.5)' }}>PREVIEW ON ETB 1,000 ITEM</p>
-                <div className="flex justify-between text-sm">
-                  <span style={{ color: '#1a3028' }}>
-                    {form.name || 'Fee'} {form.type === 'PERCENTAGE' ? `(${form.value}%)` : '(flat)'}
-                  </span>
-                  <span className="font-bold" style={{ color: '#c89b3c' }}>
-                    ETB {form.type === 'PERCENTAGE'
-                      ? (1000 * Number(form.value) / 100).toFixed(2)
-                      : Number(form.value).toFixed(2)}
-                  </span>
-                </div>
-              </div>
-            )}
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setShowForm(false)}
-                className="flex-1 py-2 rounded-xl text-sm font-medium border"
-                style={{ borderColor: 'rgba(31,122,90,0.2)', color: '#1a3028' }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={save}
-                disabled={saving || !form.name || !form.value}
-                className="flex-1 py-2 rounded-xl text-sm font-semibold text-white transition-opacity"
-                style={{ background: '#1f7a5a', opacity: saving ? 0.6 : 1 }}
-              >
-                {saving ? 'Saving…' : editingId ? 'Save Changes' : 'Create Fee'}
-              </button>
-            </div>
-          </div>
-        </div>
+        </Modal>
       )}
     </div>
   )
