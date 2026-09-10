@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuthStore } from '../../store/auth.store'
 import {
@@ -202,7 +203,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Fixed header */}
         <div className={`flex-shrink-0 py-4 border-b border-canvas-300 ${rail ? 'px-3' : 'px-4'}`}>
           <div className={`flex items-center gap-2.5 ${rail ? 'justify-center' : ''}`}>
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-brand-500 text-white flex-shrink-0">አ</div>
+            <Image src="/logo.png" alt="Aroge" width={32} height={32} className="w-8 h-8 rounded-lg flex-shrink-0 object-cover" />
             {!rail && (
               <div className="min-w-0">
                 <p className="text-[15px] font-semibold text-ink-900 tracking-tight truncate">Aroge Admin</p>

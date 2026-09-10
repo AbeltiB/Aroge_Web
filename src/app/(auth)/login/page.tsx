@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Send, ShieldCheck, Package } from 'lucide-react'
 import { api } from '../../../lib/api'
 import { useAuthStore } from '../../../store/auth.store'
@@ -93,7 +94,7 @@ export default function LoginPage() {
       {/* Left brand panel */}
       <div className="hidden md:flex md:w-[42%] h-full flex-col justify-between bg-brand-600 text-white p-12 relative overflow-hidden flex-shrink-0">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-white text-brand-700 flex-shrink-0">አ</div>
+          <Image src="/logo.png" alt="Aroge" width={32} height={32} className="w-8 h-8 rounded-lg flex-shrink-0 object-cover" />
           <span className="text-base font-medium">Aroge Admin</span>
         </div>
 
@@ -150,8 +151,8 @@ export default function LoginPage() {
               <div className="absolute left-0 top-0 w-11 h-11 rounded-full bg-[#229ED9] flex items-center justify-center shadow-sm">
                 <Send size={18} className="text-white" />
               </div>
-              <div className="absolute left-6 top-0 w-11 h-11 rounded-full bg-brand-500 flex items-center justify-center shadow-sm text-white font-bold text-sm">
-                አ
+              <div className="absolute left-6 top-0 w-11 h-11 rounded-full overflow-hidden shadow-sm">
+                <Image src="/logo.png" alt="Aroge" width={44} height={44} className="w-full h-full object-cover" />
               </div>
             </div>
           </div>
