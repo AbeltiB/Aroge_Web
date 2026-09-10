@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Send, ShieldCheck, Package } from 'lucide-react'
 import { api } from '../../../lib/api'
 import { useAuthStore } from '../../../store/auth.store'
-import { Button } from '../../../components/ui'
 import type { JwtAdminPayload } from '@arogenpm/sdk'
 
 type StartResponse = { token: string; deepLink: string; expiresIn: number }
@@ -89,42 +89,122 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-canvas-200 px-4">
-      <div className="bg-white rounded-3xl shadow-[var(--shadow-popover)] w-full max-w-sm p-8 border border-canvas-300/60">
-        <div className="mb-8 text-center">
-          <div className="w-12 h-12 rounded-2xl mx-auto mb-3 flex items-center justify-center text-lg font-black bg-brand-500 text-white shadow-sm">አ</div>
-          <h1 className="text-2xl font-bold text-brand-700 tracking-tight">Aroge</h1>
-          <p className="text-sm mt-1 text-ink-400">Backoffice Admin</p>
+    <div className="h-screen w-full overflow-hidden flex flex-col md:flex-row">
+      {/* Left brand panel */}
+      <div className="hidden md:flex md:w-[42%] h-full flex-col justify-between bg-brand-600 text-white p-12 relative overflow-hidden flex-shrink-0">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-white text-brand-700 flex-shrink-0">አ</div>
+          <span className="text-base font-medium">Aroge Admin</span>
         </div>
 
-        <p className="text-sm text-center mb-6 text-ink-500">
-          Sign in with the Telegram account your admin access was set up with.
-        </p>
+        <div className="mt-20">
+          <h1 className="text-[34px] leading-[1.15] font-bold max-w-[320px]">
+            Manage Your Marketplace with Confidence
+          </h1>
+          <p className="text-[15px] text-white/80 mt-4 max-w-[300px]">
+            Secure order fulfillment, escrow, and payouts across the Aroge marketplace.
+          </p>
 
-        {(status === 'idle' || status === 'starting') && (
-          <Button variant="primary" className="w-full" onClick={startLogin} disabled={status === 'starting'}>
-            {status === 'starting' ? 'Starting…' : 'Continue with Telegram'}
-          </Button>
-        )}
-
-        {status === 'waiting' && (
-          <div className="text-center space-y-3">
-            <p className="text-sm text-brand-600">
-              Telegram should have opened — tap the &ldquo;Log in to Aroge&rdquo; button there.
-            </p>
-            <a href={deepLink} className="text-xs underline text-brand-600 hover:text-brand-700">
-              Didn&apos;t open? Tap here
-            </a>
+          {/* Decorative floating cards */}
+          <div className="relative mt-16 h-56 w-full max-w-[300px]">
+            <svg className="absolute inset-0 pointer-events-none" width="100%" height="100%">
+              <line x1="70" y1="55" x2="160" y2="140" stroke="white" strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="4 4" />
+            </svg>
+            <div className="absolute left-0 top-0 w-44 rounded-xl bg-white text-ink-900 shadow-popover p-3.5 font-mono text-[11px] leading-relaxed">
+              <p>{'{'}</p>
+              <p className="pl-2 text-ink-500">"orderId": <span className="text-brand-700">"ORD-8825"</span>,</p>
+              <p className="pl-2 text-ink-500">"buyer": <span className="text-brand-700">"abel****"</span>,</p>
+              <p className="pl-2 text-ink-500">"seller": <span className="text-brand-700">"haile****"</span>,</p>
+              <p className="pl-2 text-ink-500">"amount": <span className="text-brand-700">"1,250 ETB"</span></p>
+              <p>{'}'}</p>
+            </div>
+            <div className="absolute left-16 top-24 w-48 rounded-xl bg-white text-ink-900 shadow-popover p-3.5 flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-ink-900 flex items-center justify-center flex-shrink-0">
+                <Package size={18} className="text-white" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold truncate">ORD-8825</p>
+                <p className="text-sm font-bold">1,250 ETB</p>
+                <p className="text-[10px] text-ink-400">Jan 21, 2026</p>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
 
-        {status === 'signing-in' && (
-          <p className="text-sm text-center text-brand-600">Signing in…</p>
-        )}
+        <div className="inline-flex items-center gap-2 bg-white/10 rounded-full px-4 py-2 w-fit">
+          <ShieldCheck size={14} />
+          <span className="text-xs font-medium">Bank-grade escrow, powered by Aroge</span>
+        </div>
+      </div>
 
-        {error && (
-          <p className="text-sm text-action-600 text-center mt-4">{error}</p>
-        )}
+      {/* Right panel */}
+      <div
+        className="flex-1 h-full relative flex items-center justify-center p-6"
+        style={{
+          background: 'linear-gradient(180deg, #cfe4f5 0%, #e8f1f9 45%, #f7fafc 100%)',
+        }}
+      >
+        <div className="relative z-10 bg-white/90 backdrop-blur rounded-2xl shadow-popover p-10 sm:p-12 w-full max-w-[420px] border border-white/60">
+          <div className="flex justify-center mb-6">
+            <div className="relative w-16 h-11">
+              <div className="absolute left-0 top-0 w-11 h-11 rounded-full bg-[#229ED9] flex items-center justify-center shadow-sm">
+                <Send size={18} className="text-white" />
+              </div>
+              <div className="absolute left-6 top-0 w-11 h-11 rounded-full bg-brand-500 flex items-center justify-center shadow-sm text-white font-bold text-sm">
+                አ
+              </div>
+            </div>
+          </div>
+
+          <h2 className="text-2xl font-bold text-ink-900 text-center">Welcome Back</h2>
+          <p className="text-sm text-ink-500 text-center mt-1.5 mb-7">
+            Sign in to your account with your Telegram account
+          </p>
+
+          {(status === 'idle' || status === 'starting') && (
+            <button
+              onClick={startLogin}
+              disabled={status === 'starting'}
+              className="w-full inline-flex items-center justify-center gap-2 bg-[#229ED9] hover:bg-[#1c8ac0] text-white text-sm font-semibold rounded-lg px-4 py-3.5 transition-colors disabled:opacity-60"
+            >
+              <Send size={16} />
+              {status === 'starting' ? 'Starting…' : 'Continue with Telegram'}
+            </button>
+          )}
+
+          {status === 'waiting' && (
+            <div className="text-center space-y-3 py-1">
+              <p className="text-sm text-brand-600">
+                Telegram should have opened — tap the &ldquo;Log in to Aroge&rdquo; button there.
+              </p>
+              <a href={deepLink} className="text-xs underline text-brand-600 hover:text-brand-700">
+                Didn&apos;t open? Tap here
+              </a>
+            </div>
+          )}
+
+          {status === 'signing-in' && (
+            <p className="text-sm text-center text-brand-600 py-1">Signing in…</p>
+          )}
+
+          {error && (
+            <p className="text-sm text-action-600 text-center mt-4">{error}</p>
+          )}
+
+          <p className="text-xs text-ink-400 text-center mt-6 leading-relaxed">
+            By continuing, you acknowledge and agree to the{' '}
+            <a href="/terms" className="underline hover:text-ink-600">Terms of Service</a> and{' '}
+            <a href="/privacy" className="underline hover:text-ink-600">Privacy Policy</a>
+          </p>
+
+          <div className="text-center mt-4">
+            <a href="/" className="text-sm text-brand-600 hover:text-brand-700 font-medium">Return Home</a>
+          </div>
+        </div>
+
+        <p className="absolute bottom-4 inset-x-0 text-center text-[11px] text-ink-400">
+          © 2026 Aroge. All rights reserved.
+        </p>
       </div>
     </div>
   )

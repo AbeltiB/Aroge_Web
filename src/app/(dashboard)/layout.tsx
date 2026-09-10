@@ -79,7 +79,6 @@ const NAV_SECTIONS = [
   },
 ]
 
-const FOLD_KEY = 'aroge-admin-collapsed-sections'
 const RAIL_KEY = 'aroge-admin-sidebar-rail'
 
 function NavItem({
@@ -90,48 +89,73 @@ function NavItem({
       href={href}
       title={rail ? label : undefined}
       className={[
-        'relative flex items-center gap-2.5 py-2 rounded-lg text-sm transition-colors',
-        rail ? 'justify-center px-2' : 'pl-7 pr-3',
+        'flex items-center gap-2.5 rounded-lg text-sm font-medium transition-colors',
+        rail ? 'justify-center px-2 py-2' : 'px-3 py-2',
         active
-          ? 'bg-brand-50 text-brand-700 font-semibold'
-          : 'text-ink-500 font-medium hover:bg-canvas-200 hover:text-ink-900',
+          ? 'bg-brand-50 text-brand-700'
+          : 'text-ink-500 hover:bg-canvas-100 hover:text-ink-900',
       ].join(' ')}
     >
-      {active && !rail && <span className="absolute left-2 top-1/2 -translate-y-1/2 w-1 h-4 rounded-full bg-brand-500" />}
-      <Icon size={16} strokeWidth={active ? 2.4 : 2} className="flex-shrink-0" />
+      <Icon size={16} strokeWidth={active ? 2.1 : 1.8} className="flex-shrink-0" />
       {!rail && <span className="truncate">{label}</span>}
     </Link>
   )
 }
 
 function NavSection({
-  label, items, pathname, collapsed, onToggle,
+  label, items, pathname,
 }: {
   label: string
   items: { href: string; label: string; Icon: React.ElementType }[]
   pathname: string
-  collapsed: boolean
-  onToggle: () => void
 }) {
   return (
     <div>
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-ink-300 hover:text-ink-500 transition-colors"
-      >
+      <p className="px-3 mb-1 text-[11px] font-semibold uppercase text-ink-400" style={{ letterSpacing: '0.05em' }}>
         {label}
-        <ChevronDown size={13} className={`transition-transform duration-200 ${collapsed ? '-rotate-90' : ''}`} />
-      </button>
-      <div className="overflow-hidden transition-[grid-template-rows] duration-200 grid" style={{ gridTemplateRows: collapsed ? '0fr' : '1fr' }}>
-        <div className="overflow-hidden">
-          <div className="space-y-0.5 pt-0.5 pb-1 relative">
-            {items.length > 1 && <span className="absolute left-[18px] top-1 bottom-4 w-px bg-canvas-300" />}
-            {items.map((item) => (
-              <NavItem key={item.href} {...item} active={pathname === item.href} rail={false} />
-            ))}
-          </div>
-        </div>
+      </p>
+      <div className="space-y-0.5">
+        {items.map((item) => (
+          <NavItem key={item.href} {...item} active={pathname === item.href} rail={false} />
+        ))}
       </div>
+    </div>
+  )
+}
+
+function UserMenu({
+  name, role, onSignOut,
+}: { name?: string; role?: string; onSignOut: () => void }) {
+  const [open, setOpen] = useState(false)
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="flex items-center gap-2.5 pl-2 pr-2.5 py-1.5 rounded-lg border border-canvas-300 hover:bg-canvas-100 transition-colors"
+      >
+        <div className="w-7 h-7 rounded-md flex items-center justify-center text-xs font-bold bg-brand-100 text-brand-700 flex-shrink-0">
+          {name?.[0] ?? 'A'}
+        </div>
+        <div className="min-w-0 text-left hidden sm:block">
+          <p className="text-sm font-medium text-ink-900 leading-tight truncate max-w-[9rem]">{name}</p>
+          <p className="text-[11px] text-ink-400 leading-tight truncate">{role}</p>
+        </div>
+        <ChevronDown size={15} className={`text-ink-400 flex-shrink-0 transition-transform ${open ? 'rotate-180' : ''}`} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
+          <div className="absolute right-0 top-full mt-1.5 w-44 rounded-lg border border-canvas-300 bg-white shadow-popover z-20 py-1">
+            <button
+              onClick={onSignOut}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-ink-700 hover:bg-canvas-100 transition-colors"
+            >
+              <LogOut size={15} />
+              Sign Out
+            </button>
+          </div>
+        </>
+      )}
     </div>
   )
 }
@@ -140,26 +164,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname()
   const router = useRouter()
   const { admin, clearAuth, isAuthenticated } = useAuthStore()
-  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({})
   const [rail, setRail] = useState(false)
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(FOLD_KEY)
-      if (raw) setCollapsedSections(JSON.parse(raw))
       setRail(localStorage.getItem(RAIL_KEY) === '1')
     } catch {
       // ignore — falls back to defaults
     }
   }, [])
-
-  function toggleSection(label: string) {
-    setCollapsedSections((prev) => {
-      const next = { ...prev, [label]: !prev[label] }
-      try { localStorage.setItem(FOLD_KEY, JSON.stringify(next)) } catch {}
-      return next
-    })
-  }
 
   function toggleRail() {
     setRail((prev) => {
@@ -183,69 +196,83 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     : ['Dashboard', currentSection, currentItem.label]
 
   return (
-    <div className="flex h-screen overflow-hidden bg-canvas-200">
-      {/* Sidebar */}
-      <aside className={`flex flex-col flex-shrink-0 bg-white border-r border-canvas-300/70 transition-[width] duration-200 ${rail ? 'w-[68px]' : 'w-64'}`}>
-        <div className={`pt-5 pb-4 border-b border-canvas-300/70 ${rail ? 'px-3' : 'px-5'}`}>
+    <div className="flex h-dvh overflow-hidden bg-canvas-200">
+      {/* Sidebar — 3 fixed regions: header, scrollable nav body, footer */}
+      <aside className={`flex flex-col h-full flex-shrink-0 bg-white border-r border-canvas-300 transition-[width] duration-200 ${rail ? 'w-[68px]' : 'w-64'}`}>
+        {/* Fixed header */}
+        <div className={`flex-shrink-0 py-4 border-b border-canvas-300 ${rail ? 'px-3' : 'px-4'}`}>
           <div className={`flex items-center gap-2.5 ${rail ? 'justify-center' : ''}`}>
-            <div className="w-8 h-8 rounded-xl flex items-center justify-center text-sm font-black bg-brand-500 text-white shadow-sm flex-shrink-0">አ</div>
-            {!rail && <span className="text-base font-bold text-ink-900 tracking-tight">Aroge Admin</span>}
-          </div>
-          {!rail && (
-            <div className="mt-3 flex items-center gap-2 px-2.5 py-2 rounded-lg bg-canvas-100">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold bg-value-400 text-white flex-shrink-0">
-                {admin?.name?.[0] ?? 'A'}
-              </div>
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold bg-brand-500 text-white flex-shrink-0">አ</div>
+            {!rail && (
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-ink-900 truncate">{admin?.name}</p>
-                <p className="text-[10px] text-ink-400 uppercase tracking-wide">{admin?.role}</p>
+                <p className="text-[15px] font-semibold text-ink-900 tracking-tight truncate">Aroge Admin</p>
+                <p className="text-xs font-normal text-ink-400 truncate">Admin Panel</p>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
-        <nav className={`flex-1 overflow-y-auto py-3 space-y-1 ${rail ? 'px-2' : 'px-2.5'}`}>
+        {/* Scrollable nav body — min-h-0 lets it shrink and scroll on its own instead of forcing the sidebar (and page) to grow */}
+        <nav className={`flex-1 min-h-0 overflow-y-auto py-4 ${rail ? 'px-2 space-y-1.5' : 'px-3 space-y-3'}`}>
           {rail
             ? NAV_SECTIONS.flatMap((s) => s.items).map((item) => (
               <NavItem key={item.href} {...item} active={pathname === item.href} rail />
             ))
             : NAV_SECTIONS.map((section) => (
-              <NavSection
-                key={section.label}
-                {...section}
-                pathname={pathname}
-                collapsed={!!collapsedSections[section.label]}
-                onToggle={() => toggleSection(section.label)}
-              />
+              <NavSection key={section.label} {...section} pathname={pathname} />
             ))}
         </nav>
 
-        <div className={`p-2.5 border-t border-canvas-300/70 ${rail ? 'flex flex-col items-center gap-1' : ''}`}>
+        {/* Fixed footer — user card + sign out, visually separated from the scrollable nav */}
+        <div className={`flex-shrink-0 border-t border-canvas-300 bg-canvas-100 p-3 ${rail ? 'flex flex-col items-center gap-2' : 'space-y-1'}`}>
+          {rail ? (
+            <div title={admin?.name} className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold bg-brand-100 text-brand-700 flex-shrink-0">
+              {admin?.name?.[0] ?? 'A'}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2.5 px-1 py-1.5">
+              <div className="w-8 h-8 rounded-md flex items-center justify-center text-xs font-bold bg-brand-100 text-brand-700 flex-shrink-0">
+                {admin?.name?.[0] ?? 'A'}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-medium text-ink-900 truncate">{admin?.name}</p>
+                <p className="text-[11px] text-ink-400 truncate">{admin?.role}</p>
+              </div>
+            </div>
+          )}
           <button
             onClick={() => { clearAuth(); router.replace('/login') }}
             title={rail ? 'Sign Out' : undefined}
-            className={`flex items-center gap-2.5 text-sm font-medium text-ink-500 hover:bg-canvas-200 hover:text-ink-900 rounded-lg transition-colors ${rail ? 'justify-center p-2' : 'w-full px-3 py-2'}`}
+            className={`flex items-center gap-2.5 text-[13px] font-medium text-ink-500 hover:bg-canvas-200 hover:text-ink-900 rounded-lg transition-colors ${rail ? 'justify-center p-2' : 'w-full px-2.5 py-1.5'}`}
           >
-            <LogOut size={16} />
+            <LogOut size={14} />
             {!rail && 'Sign Out'}
           </button>
         </div>
       </aside>
 
       {/* Main content */}
-      <main className="flex-1 overflow-y-auto">
-        <div className="sticky top-0 z-10 px-6 py-3.5 border-b border-canvas-300/70 bg-white/90 backdrop-blur-sm flex items-center gap-3">
-          <button onClick={toggleRail} className="p-1.5 -ml-1.5 rounded-lg text-ink-400 hover:bg-canvas-200 hover:text-ink-700 transition-colors">
-            <PanelLeft size={17} />
-          </button>
-          <nav className="flex items-center gap-1.5 text-sm">
-            {breadcrumbs.map((crumb, i) => (
-              <span key={i} className="flex items-center gap-1.5">
-                {i > 0 && <ChevronRight size={13} className="text-ink-300" />}
-                <span className={i === breadcrumbs.length - 1 ? 'font-semibold text-ink-900' : 'text-ink-400'}>{crumb}</span>
-              </span>
-            ))}
-          </nav>
+      <main className="flex-1 min-h-0 overflow-y-auto">
+        <div className="sticky top-0 z-10 px-6 py-3 border-b border-canvas-300 bg-white/90 backdrop-blur-sm flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <button onClick={toggleRail} className="p-1.5 -ml-1.5 rounded-lg text-ink-400 hover:bg-canvas-100 hover:text-ink-700 transition-colors">
+              <PanelLeft size={17} />
+            </button>
+            <nav className="flex items-center gap-1.5 text-sm">
+              {breadcrumbs.map((crumb, i) => (
+                <span key={i} className="flex items-center gap-1.5">
+                  {i > 0 && <ChevronRight size={13} className="text-ink-300" />}
+                  <span className={i === breadcrumbs.length - 1 ? 'font-semibold text-ink-900' : 'text-ink-400'}>{crumb}</span>
+                </span>
+              ))}
+            </nav>
+          </div>
+
+          <UserMenu
+            name={admin?.name}
+            role={admin?.role}
+            onSignOut={() => { clearAuth(); router.replace('/login') }}
+          />
         </div>
 
         <div className="p-6 max-w-[1400px] mx-auto">
