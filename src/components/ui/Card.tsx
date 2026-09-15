@@ -10,7 +10,7 @@ export function Card({ children, padded = false, hoverable = false, className = 
   return (
     <div
       className={[
-        'bg-white rounded-2xl border border-canvas-300/60 shadow-[var(--shadow-card)]',
+        'bg-white dark:bg-dark-surface-raised rounded-2xl border border-canvas-300/60 dark:border-dark-line shadow-[var(--shadow-card)]',
         hoverable ? 'transition-shadow duration-200 hover:shadow-[var(--shadow-card-hover)]' : '',
         padded ? 'p-5' : '',
         className,
@@ -24,12 +24,12 @@ export function Card({ children, padded = false, hoverable = false, className = 
 
 export function CardHeader({ children, className = '' }: { children: ReactNode; className?: string }) {
   return (
-    <div className={`flex items-center justify-between gap-3 px-5 py-4 border-b border-canvas-300/60 ${className}`}>
+    <div className={`flex items-center justify-between gap-3 px-5 py-4 border-b border-canvas-300/60 dark:border-dark-line ${className}`}>
       {children}
     </div>
   )
 }
 
 export function CardTitle({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <h3 className={`font-bold text-sm text-ink-900 ${className}`}>{children}</h3>
+  return <h3 className={`font-bold text-sm text-ink-900 dark:text-dark-text ${className}`}>{children}</h3>
 }

@@ -16,7 +16,9 @@ export function FilterChips<T extends string>({
             onClick={() => onChange(opt)}
             className={[
               'px-3 py-1.5 rounded-full text-xs font-semibold transition-colors',
-              active ? 'bg-brand-500 text-white shadow-sm' : 'bg-white text-ink-500 border border-canvas-400 hover:bg-canvas-100',
+              active
+                ? 'bg-brand-500 text-white shadow-sm'
+                : 'bg-white text-ink-500 border border-canvas-400 hover:bg-canvas-100 dark:bg-dark-surface-raised dark:text-dark-text-soft dark:border-dark-line dark:hover:bg-white/5',
             ].join(' ')}
           >
             {labels?.[opt] ?? (opt || 'All')}

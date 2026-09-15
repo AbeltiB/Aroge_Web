@@ -5,11 +5,11 @@ export function EmptyState({
 }: { icon: React.ElementType; title: string; subtitle?: ReactNode }) {
   return (
     <div className="flex flex-col items-center justify-center text-center py-16 px-6">
-      <div className="w-12 h-12 rounded-2xl bg-canvas-200 flex items-center justify-center mb-3">
-        <Icon size={22} className="text-ink-300" />
+      <div className="w-12 h-12 rounded-2xl bg-canvas-200 dark:bg-white/5 flex items-center justify-center mb-3">
+        <Icon size={22} className="text-ink-300 dark:text-dark-text-soft" />
       </div>
-      <p className="text-sm font-semibold text-ink-700">{title}</p>
-      {subtitle && <p className="text-xs text-ink-400 mt-1 max-w-xs">{subtitle}</p>}
+      <p className="text-sm font-semibold text-ink-700 dark:text-dark-text">{title}</p>
+      {subtitle && <p className="text-xs text-ink-400 dark:text-dark-text-soft mt-1 max-w-xs">{subtitle}</p>}
     </div>
   )
 }

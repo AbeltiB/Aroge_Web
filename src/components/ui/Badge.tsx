@@ -9,7 +9,7 @@ const TONE_CLASSES: Record<BadgeTone, string> = {
   brand: 'bg-brand-500 text-white',
   value: 'bg-value-500 text-white',
   action: 'bg-action-500 text-white',
-  neutral: 'bg-canvas-300 text-ink-600',
+  neutral: 'bg-canvas-300 text-ink-600 dark:bg-white/10 dark:text-dark-text-soft',
   danger: 'bg-red-500 text-white',
 }
 

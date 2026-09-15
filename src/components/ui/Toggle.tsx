@@ -3,7 +3,7 @@ export function Toggle({ checked, onChange, disabled }: { checked: boolean; onCh
     <button
       onClick={onChange}
       disabled={disabled}
-      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${checked ? 'bg-brand-500' : 'bg-canvas-400'}`}
+      className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors disabled:opacity-50 ${checked ? 'bg-brand-500' : 'bg-canvas-400 dark:bg-white/15'}`}
     >
       <span
         className="inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform"

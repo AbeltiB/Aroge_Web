@@ -12,7 +12,7 @@ export function Table({ children }: { children: ReactNode }) {
 }
 
 export function THead({ children }: { children: ReactNode }) {
-  return <thead className="text-ink-400 text-xs font-semibold uppercase tracking-wide border-b border-canvas-300/70">{children}</thead>
+  return <thead className="text-ink-400 dark:text-dark-text-soft text-xs font-semibold uppercase tracking-wide border-b border-canvas-300/70 dark:border-dark-line">{children}</thead>
 }
 
 export function Th({ children, className = '', ...rest }: ThHTMLAttributes<HTMLTableCellElement>) {
@@ -23,7 +23,7 @@ export function Tr({ children, onClick, className = '' }: { children: ReactNode;
   return (
     <tr
       onClick={onClick}
-      className={`border-t border-canvas-300/60 ${onClick ? 'cursor-pointer hover:bg-canvas-100/70 transition-colors' : ''} ${className}`}
+      className={`border-t border-canvas-300/60 dark:border-dark-line ${onClick ? 'cursor-pointer hover:bg-canvas-100/70 dark:hover:bg-white/5 transition-colors' : ''} ${className}`}
     >
       {children}
     </tr>
@@ -31,5 +31,5 @@ export function Tr({ children, onClick, className = '' }: { children: ReactNode;
 }
 
 export function Td({ children, className = '', ...rest }: TdHTMLAttributes<HTMLTableCellElement>) {
-  return <td className={`px-4 py-3 text-ink-700 ${className}`} {...rest}>{children}</td>
+  return <td className={`px-4 py-3 text-ink-700 dark:text-dark-text ${className}`} {...rest}>{children}</td>
 }
