@@ -55,12 +55,24 @@
   --color-ink-300: #c1c5cb;
   --color-ink-200: #e5e7eb;
 
-  --font-sans: var(--font-geist-sans), -apple-system, "Helvetica Neue", sans-serif;
+  --font-sans: var(--font-inter), -apple-system, "Helvetica Neue", sans-serif;
+  --font-display: var(--font-archivo), var(--font-inter), -apple-system, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
   --shadow-card: 0 1px 2px rgba(16, 24, 40, 0.04), 0 1px 3px rgba(16, 24, 40, 0.06);
   --shadow-card-hover: 0 2px 4px rgba(16, 24, 40, 0.06), 0 8px 20px rgba(16, 24, 40, 0.08);
   --shadow-popover: 0 4px 12px rgba(16, 24, 40, 0.08), 0 12px 32px rgba(16, 24, 40, 0.12);
+
+  /* Dark-mode surfaces — the brand/value/action/canvas/ink scales above are
+     shared with light mode; these five are the only genuinely new tokens
+     dark mode needs. Sidebar chrome (brand-800) is intentionally NOT here —
+     it stays the same forest tone in both themes, it's brand chrome, not a
+     themed surface. */
+  --color-dark-surface: #14161a;
+  --color-dark-surface-raised: #1c1f24;
+  --color-dark-line: #2a2e35;
+  --color-dark-text: #f3f4f6;
+  --color-dark-text-soft: #9199a8;
 }
 
 *,
@@ -86,9 +98,19 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+.dark body {
+  background: var(--color-dark-surface);
+  color: var(--color-dark-text);
+}
+
 ::selection {
   background: var(--color-brand-200);
   color: var(--color-brand-900);
+}
+
+.dark ::selection {
+  background: var(--color-brand-700);
+  color: var(--color-dark-text);
 }
 
 /* Scrollbar */
