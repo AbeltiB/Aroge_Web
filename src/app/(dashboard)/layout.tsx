@@ -3,11 +3,13 @@
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useAuthStore } from '../../store/auth.store'
+import { api } from '../../lib/api'
 import { Sidebar } from '../../components/dashboard/Sidebar'
 import { TopBar } from '../../components/dashboard/TopBar'
-import { NAV_SECTIONS } from '../../components/dashboard/nav-config'
+import { NAV_SECTIONS, type NavCountKey } from '../../components/dashboard/nav-config'
 
 const RAIL_KEY = 'aroge-admin-sidebar-rail'
+const COUNTS_POLL_MS = 60_000
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -17,6 +19,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userCollapsed, setUserCollapsed] = useState(false)
   const [autoCollapsed, setAutoCollapsed] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [counts, setCounts] = useState<Partial<Record<NavCountKey, number>>>({})
+
+  useEffect(() => {
+    let cancelled = false
+    async function loadCounts() {
+      const res = await api.get<Record<NavCountKey, number>>('/admin/nav-counts')
+      if (!cancelled && res.success) setCounts(res.data)
+    }
+    loadCounts()
+    const id = setInterval(loadCounts, COUNTS_POLL_MS)
+    return () => { cancelled = true; clearInterval(id) }
+  }, [])
 
   useEffect(() => {
     try {
@@ -67,7 +81,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     <div className="flex h-dvh overflow-hidden bg-canvas-200 dark:bg-dark-surface">
       {/* Desktop/tablet: static, width-animated. Hidden below 900px in favor of the drawer. */}
       <div className="hidden min-[900px]:block">
-        <Sidebar collapsed={userCollapsed || autoCollapsed} onToggleCollapse={toggleCollapse} />
+        <Sidebar collapsed={userCollapsed || autoCollapsed} onToggleCollapse={toggleCollapse} counts={counts} />
       </div>
       {/* Off-canvas drawer — reachable via the top bar's hamburger below
           1200px (so the 900-1199px rail tier can still open a full drawer,
@@ -77,6 +91,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         onToggleCollapse={toggleCollapse}
         mobileOpen={mobileNavOpen}
         onCloseMobile={() => setMobileNavOpen(false)}
+        counts={counts}
       />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -85,6 +100,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onOpenMobileNav={() => setMobileNavOpen(true)}
           currentUser={{ name: admin?.name, role: admin?.role }}
           onLogout={handleLogout}
+          hasUnreadNotifications={Object.values(counts).some((n) => (n ?? 0) > 0)}
         />
         <main className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-[1400px] p-6">{children}</div>

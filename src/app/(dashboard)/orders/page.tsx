@@ -9,11 +9,17 @@ import { PageHeader, FilterChips, Table, THead, Th, Tr, Td, StatusBadge, Loading
 import { ShoppingBag } from 'lucide-react'
 
 interface OrdersRes { items: Order[]; total: number }
+interface StatusCountsRes { total: number; counts: Record<string, number> }
 
 const STATUSES = ['', 'PENDING_PAYMENT', 'PAID_ESCROWED', 'IN_TRANSIT', 'COMPLETED', 'DISPUTED', 'REFUNDED']
+const STATUS_LABELS: Record<string, string> = {
+  PENDING_PAYMENT: 'Pending', PAID_ESCROWED: 'Escrow', IN_TRANSIT: 'In Transit',
+  COMPLETED: 'Completed', DISPUTED: 'Disputed', REFUNDED: 'Refunded',
+}
 
 export default function OrdersPage() {
   const [data, setData] = useState<OrdersRes | null>(null)
+  const [statusCounts, setStatusCounts] = useState<StatusCountsRes | null>(null)
   const [status, setStatus] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -25,13 +31,25 @@ export default function OrdersPage() {
     })
   }
 
-  useEffect(() => { load() }, [])
+  function loadCounts() {
+    api.get<StatusCountsRes>('/admin/orders/status-counts').then((res) => {
+      if (res.success) setStatusCounts(res.data)
+    })
+  }
+
+  useEffect(() => { load(); loadCounts() }, [])
+
+  const chipLabels = Object.fromEntries(STATUSES.map((s) => {
+    const count = s ? statusCounts?.counts[s] ?? 0 : statusCounts?.total ?? 0
+    const label = s ? STATUS_LABELS[s] : 'All'
+    return [s, `${label} (${count})`]
+  }))
 
   return (
     <div className="space-y-5">
       <PageHeader title="Orders" subtitle={`${data?.total ?? 0} total`} />
 
-      <FilterChips options={STATUSES} value={status} onChange={(s) => { setStatus(s); load(s) }} labels={{ '': 'All' }} />
+      <FilterChips options={STATUSES} value={status} onChange={(s) => { setStatus(s); load(s) }} labels={chipLabels} />
 
       {loading ? <LoadingState /> : !data?.items.length ? (
         <Card><EmptyState icon={ShoppingBag} title="No orders" subtitle="Orders will show up here once buyers start checking out." /></Card>

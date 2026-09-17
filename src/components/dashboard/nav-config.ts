@@ -10,12 +10,15 @@ import {
   History, Star, UserCog,
 } from 'lucide-react'
 
+/** Keys match the /admin/nav-counts response shape. */
+export type NavCountKey = 'disputes' | 'pendingOrders' | 'pendingBusinesses'
+
 export type NavItem = {
   href: string
   label: string
   Icon: LucideIcon
-  /** Wired to real counts in Phase 2 (open disputes, pending orders, etc.) — undefined means no badge. */
-  count?: number
+  /** Looked up against the real /admin/nav-counts response — omitted means no badge. */
+  countKey?: NavCountKey
 }
 
 export type NavSection = {
@@ -41,8 +44,8 @@ export const NAV_SECTIONS: NavSection[] = [
   {
     label: 'Transactions',
     items: [
-      { href: '/orders', label: 'Orders', Icon: ShoppingBag },
-      { href: '/disputes', label: 'Disputes', Icon: ShieldCheck },
+      { href: '/orders', label: 'Orders', Icon: ShoppingBag, countKey: 'pendingOrders' },
+      { href: '/disputes', label: 'Disputes', Icon: ShieldCheck, countKey: 'disputes' },
       { href: '/reviews', label: 'Reviews', Icon: Star },
       { href: '/reports', label: 'Reports', Icon: Flag },
     ],
@@ -60,7 +63,7 @@ export const NAV_SECTIONS: NavSection[] = [
     label: 'Community',
     items: [
       { href: '/users', label: 'Users', Icon: Users },
-      { href: '/businesses', label: 'Businesses', Icon: Building2 },
+      { href: '/businesses', label: 'Businesses', Icon: Building2, countKey: 'pendingBusinesses' },
       { href: '/badges', label: 'Trusted Badges', Icon: BadgeCheck },
       { href: '/holiday-mode', label: 'Holiday Mode', Icon: PalmtreeIcon },
     ],

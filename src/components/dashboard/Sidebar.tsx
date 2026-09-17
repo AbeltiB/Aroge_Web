@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 import { ChevronLeft, ChevronDown } from 'lucide-react'
-import { NAV_SECTIONS } from './nav-config'
+import { NAV_SECTIONS, type NavCountKey } from './nav-config'
 
 type Props = {
   collapsed: boolean
@@ -12,6 +12,7 @@ type Props = {
   /** mobile off-canvas open state — undefined means "not rendering the mobile drawer variant" */
   mobileOpen?: boolean
   onCloseMobile?: () => void
+  counts?: Partial<Record<NavCountKey, number>>
 }
 
 function NavItemRow({
@@ -43,7 +44,7 @@ function NavItemRow({
  * the same in light and dark mode (see globals.css comment on the dark-*
  * tokens). Only the content surface and top bar invert.
  */
-export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile }: Props) {
+export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile, counts }: Props) {
   const pathname = usePathname()
   const [foldedSections, setFoldedSections] = useState<Set<string>>(new Set())
 
@@ -94,7 +95,15 @@ export function Sidebar({ collapsed, onToggleCollapse, mobileOpen, onCloseMobile
               )}
               {!isFolded &&
                 section.items.map((item) => (
-                  <NavItemRow key={item.href} {...item} active={pathname === item.href} collapsed={collapsed} />
+                  <NavItemRow
+                    key={item.href}
+                    href={item.href}
+                    label={item.label}
+                    Icon={item.Icon}
+                    count={item.countKey ? counts?.[item.countKey] : undefined}
+                    active={pathname === item.href}
+                    collapsed={collapsed}
+                  />
                 ))}
             </div>
           )
