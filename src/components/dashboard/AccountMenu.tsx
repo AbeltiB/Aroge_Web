@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
-import { Moon, Sun, LogOut, ChevronDown } from 'lucide-react'
+import { Moon, Sun, LogOut, ChevronDown, User, Bell } from 'lucide-react'
 
 type Props = {
   name?: string
@@ -55,7 +55,15 @@ export function AccountMenu({ name, role, onLogout }: Props) {
             onClick={() => setOpen(false)}
             className="flex items-center gap-2.5 border-b border-canvas-300 dark:border-dark-line px-4 py-2.5 text-[13px] font-semibold text-ink-700 dark:text-dark-text hover:bg-canvas-100 dark:hover:bg-white/5"
           >
-            Account
+            <User size={15} /> Account settings
+          </Link>
+
+          <Link
+            href="/account/notifications"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-2.5 border-b border-canvas-300 dark:border-dark-line px-4 py-2.5 text-[13px] font-semibold text-ink-700 dark:text-dark-text hover:bg-canvas-100 dark:hover:bg-white/5"
+          >
+            <Bell size={15} /> Notification prefs
           </Link>
 
           <button

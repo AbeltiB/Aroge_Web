@@ -20,12 +20,18 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [autoCollapsed, setAutoCollapsed] = useState(false)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [counts, setCounts] = useState<Partial<Record<NavCountKey, number>>>({})
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
 
   useEffect(() => {
     let cancelled = false
     async function loadCounts() {
-      const res = await api.get<Record<NavCountKey, number>>('/admin/nav-counts')
-      if (!cancelled && res.success) setCounts(res.data)
+      const [navRes, unreadRes] = await Promise.all([
+        api.get<Record<NavCountKey, number>>('/admin/nav-counts'),
+        api.get<{ count: number }>('/admin/notifications/unread-count'),
+      ])
+      if (cancelled) return
+      if (navRes.success) setCounts(navRes.data)
+      if (unreadRes.success) setUnreadNotifications(unreadRes.data.count)
     }
     loadCounts()
     const id = setInterval(loadCounts, COUNTS_POLL_MS)
@@ -68,9 +74,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     .find((i) => i.href === pathname)
   const currentSection = currentItem?.section ?? 'Dashboard'
   const currentSectionSize = NAV_SECTIONS.find((s) => s.label === currentSection)?.items.length ?? 1
-  const breadcrumbs = currentSectionSize <= 1 || !currentItem
-    ? ['Dashboard', currentSection]
-    : ['Dashboard', currentSection, currentItem.label]
+
+  // Account routes aren't in the sidebar nav, so they don't resolve via
+  // currentItem above — give them their own explicit breadcrumb instead of
+  // falling through to a confusing "Dashboard / Dashboard".
+  const ACCOUNT_BREADCRUMBS: Record<string, string[]> = {
+    '/account': ['Account', 'Profile'],
+    '/account/notifications': ['Account', 'Notifications'],
+  }
+
+  const breadcrumbs = ACCOUNT_BREADCRUMBS[pathname]
+    ?? (currentSectionSize <= 1 || !currentItem
+      ? ['Dashboard', currentSection]
+      : ['Dashboard', currentSection, currentItem.label])
 
   function handleLogout() {
     clearAuth()
@@ -100,7 +116,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onOpenMobileNav={() => setMobileNavOpen(true)}
           currentUser={{ name: admin?.name, role: admin?.role }}
           onLogout={handleLogout}
-          hasUnreadNotifications={Object.values(counts).some((n) => (n ?? 0) > 0)}
+          hasUnreadNotifications={unreadNotifications > 0}
         />
         <main className="min-h-0 flex-1 overflow-y-auto">
           <div className="mx-auto max-w-[1400px] p-6">{children}</div>

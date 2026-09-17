@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useTheme } from 'next-themes'
 import { Menu, Search, Bell, Sun, Moon } from 'lucide-react'
 import { AccountMenu } from './AccountMenu'
@@ -9,7 +10,6 @@ type Props = {
   onOpenMobileNav: () => void
   currentUser: { name?: string; role?: string }
   onLogout: () => void
-  /** Real unread state wired in Phase 3/4 — undefined renders no dot. */
   hasUnreadNotifications?: boolean
 }
 
@@ -56,7 +56,8 @@ export function TopBar({ breadcrumbs, onOpenMobileNav, currentUser, onLogout, ha
           </span>
         </button>
 
-        <button
+        <Link
+          href="/account/notifications"
           aria-label="Notifications"
           className="relative flex h-[34px] w-[34px] items-center justify-center rounded-lg border border-canvas-300 dark:border-dark-line bg-canvas-100 dark:bg-dark-surface text-ink-500 dark:text-dark-text-soft hover:bg-canvas-200 dark:hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-brand-500"
         >
@@ -64,7 +65,7 @@ export function TopBar({ breadcrumbs, onOpenMobileNav, currentUser, onLogout, ha
           {hasUnreadNotifications && (
             <span className="absolute right-[7px] top-[6px] h-[6px] w-[6px] rounded-full bg-action-500" />
           )}
-        </button>
+        </Link>
 
         <AccountMenu name={currentUser.name} role={currentUser.role} onLogout={onLogout} />
       </div>
