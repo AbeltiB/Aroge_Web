@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { api } from '../../../lib/api'
 import type { User } from '@arogenpm/sdk'
 import { PageHeader, Table, THead, Th, Tr, Td, Badge, Button, Input, LoadingState, EmptyState, Card } from '../../../components/ui'
@@ -8,9 +9,11 @@ import { Search, Users as UsersIcon } from 'lucide-react'
 
 interface UsersRes { items: User[]; total: number; page: number }
 
-export default function UsersPage() {
+function UsersContent() {
+  const searchParams = useSearchParams()
+  const initialQ = searchParams.get('q') ?? ''
   const [data, setData] = useState<UsersRes | null>(null)
-  const [q, setQ] = useState('')
+  const [q, setQ] = useState(initialQ)
   const [loading, setLoading] = useState(true)
 
   function load(query = '') {
@@ -21,7 +24,7 @@ export default function UsersPage() {
     })
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => { load(initialQ) }, [])
 
   async function ban(id: string) {
     if (!confirm('Ban this user?')) return
@@ -79,5 +82,13 @@ export default function UsersPage() {
         </Table>
       )}
     </div>
+  )
+}
+
+export default function UsersPage() {
+  return (
+    <Suspense>
+      <UsersContent />
+    </Suspense>
   )
 }

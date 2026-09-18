@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { api } from '../../../lib/api'
 import type { Business } from '@arogenpm/sdk'
 import { PageHeader, Table, THead, Th, Tr, Td, Badge, Button, LoadingState, EmptyState, Card } from '../../../components/ui'
@@ -8,7 +9,9 @@ import { Building2 } from 'lucide-react'
 
 interface BusinessesRes { items: (Business & { rep: { id: string; name: string; telegramId: string } })[]; total: number }
 
-export default function BusinessesPage() {
+function BusinessesContent() {
+  const searchParams = useSearchParams()
+  const initialQ = searchParams.get('q') ?? ''
   const [data, setData] = useState<BusinessesRes | null>(null)
   const [unverifiedOnly, setUnverifiedOnly] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -21,7 +24,17 @@ export default function BusinessesPage() {
     })
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    if (initialQ) {
+      setLoading(true)
+      api.get<BusinessesRes>(`/admin/businesses?q=${encodeURIComponent(initialQ)}`).then((res) => {
+        if (res.success) setData(res.data)
+        setLoading(false)
+      })
+    } else {
+      load()
+    }
+  }, [])
 
   async function verify(id: string) {
     await api.post(`/businesses/${id}/verify`, {})
@@ -85,5 +98,13 @@ export default function BusinessesPage() {
         </Table>
       )}
     </div>
+  )
+}
+
+export default function BusinessesPage() {
+  return (
+    <Suspense>
+      <BusinessesContent />
+    </Suspense>
   )
 }

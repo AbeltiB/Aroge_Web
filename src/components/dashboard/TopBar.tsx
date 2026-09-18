@@ -2,8 +2,9 @@
 
 import Link from 'next/link'
 import { useTheme } from 'next-themes'
-import { Menu, Search, Bell, Sun, Moon } from 'lucide-react'
+import { Menu, Bell, Sun, Moon } from 'lucide-react'
 import { AccountMenu } from './AccountMenu'
+import { SearchBox } from './SearchBox'
 
 type Props = {
   breadcrumbs: string[]
@@ -38,10 +39,7 @@ export function TopBar({ breadcrumbs, onOpenMobileNav, currentUser, onLogout, ha
         ))}
       </nav>
 
-      <div className="ml-3 hidden w-[240px] items-center gap-2 rounded-lg border border-canvas-300 dark:border-dark-line bg-canvas-100 dark:bg-dark-surface px-3 py-2 text-[12.5px] text-ink-400 dark:text-dark-text-soft sm:flex">
-        <Search size={14} className="flex-shrink-0" />
-        <span>Search orders, users…</span>
-      </div>
+      <SearchBox />
 
       <div className="ml-auto flex items-center gap-2.5">
         <button

@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { api } from '../../../lib/api'
 import { formatETB } from '@arogenpm/sdk'
 import type { Listing } from '@arogenpm/sdk'
@@ -14,7 +15,9 @@ const TAB_LABELS: Record<string, string> = {
   ACTIVE: 'Active', DRAFT: 'Draft', RESERVED: 'Reserved', SOLD: 'Sold', FLAGGED: 'Flagged', REMOVED: 'Removed',
 }
 
-export default function ListingsPage() {
+function ListingsContent() {
+  const searchParams = useSearchParams()
+  const initialQ = searchParams.get('q') ?? ''
   const [data, setData] = useState<ListingsRes | null>(null)
   const [tab, setTab] = useState('ACTIVE')
   const [loading, setLoading] = useState(true)
@@ -29,7 +32,19 @@ export default function ListingsPage() {
     })
   }
 
-  useEffect(() => { load() }, [])
+  useEffect(() => {
+    // Arriving from the top-bar search: surface the matching listing
+    // regardless of status/tab instead of the default ACTIVE-only view.
+    if (initialQ) {
+      setLoading(true)
+      api.get<ListingsRes>(`/admin/listings?q=${encodeURIComponent(initialQ)}`).then((res) => {
+        if (res.success) setData(res.data)
+        setLoading(false)
+      })
+    } else {
+      load()
+    }
+  }, [])
 
   async function remove(id: string) {
     if (!confirm('Remove this listing? It will no longer be visible anywhere.')) return
@@ -117,5 +132,13 @@ export default function ListingsPage() {
         </Table>
       )}
     </div>
+  )
+}
+
+export default function ListingsPage() {
+  return (
+    <Suspense>
+      <ListingsContent />
+    </Suspense>
   )
 }
