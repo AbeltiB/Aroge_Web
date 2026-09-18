@@ -95,6 +95,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-dvh overflow-hidden bg-canvas-200 dark:bg-dark-surface">
+      {/* The sidebar has ~25 links ahead of the top bar's search/theme/bell/
+          account controls and the page content — without this, a keyboard
+          user has to Tab through the entire nav tree just to reach either. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-50 focus:rounded-lg focus:bg-brand-600 focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:outline-2 focus:outline-white"
+      >
+        Skip to main content
+      </a>
       {/* Desktop/tablet: static, width-animated. Hidden below 900px in favor of the drawer. */}
       <div className="hidden min-[900px]:block">
         <Sidebar collapsed={userCollapsed || autoCollapsed} onToggleCollapse={toggleCollapse} counts={counts} />
@@ -118,7 +127,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           onLogout={handleLogout}
           hasUnreadNotifications={unreadNotifications > 0}
         />
-        <main className="min-h-0 flex-1 overflow-y-auto">
+        {/* min-w-0 keeps this flex child from growing to fit wide content
+            (e.g. a table) — without it the whole page gains horizontal
+            overflow instead of the table's own overflow-x-auto scrolling. */}
+        <main id="main-content" tabIndex={-1} className="min-h-0 min-w-0 flex-1 overflow-y-auto outline-none">
           <div className="mx-auto max-w-[1400px] p-6">{children}</div>
         </main>
       </div>

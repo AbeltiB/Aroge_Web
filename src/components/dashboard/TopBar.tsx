@@ -28,15 +28,21 @@ export function TopBar({ breadcrumbs, onOpenMobileNav, currentUser, onLogout, ha
         <Menu size={19} />
       </button>
 
-      <nav className="flex items-center gap-1.5 text-sm">
-        {breadcrumbs.map((crumb, i) => (
-          <span key={i} className="flex items-center gap-1.5">
-            {i > 0 && <span className="text-ink-300 dark:text-dark-text-soft">/</span>}
-            <span className={i === breadcrumbs.length - 1 ? 'font-semibold text-ink-900 dark:text-dark-text' : 'text-ink-400 dark:text-dark-text-soft'}>
-              {crumb}
+      {/* On narrow screens a full "A / B / C" trail can push the theme
+          toggle/bell/account menu off-screen — below sm, only the current
+          page (last crumb) shows, same pattern as a mobile back-button trail. */}
+      <nav className="flex min-w-0 items-center gap-1.5 text-sm">
+        {breadcrumbs.map((crumb, i) => {
+          const isCurrent = i === breadcrumbs.length - 1
+          return (
+            <span key={i} className={`flex min-w-0 items-center gap-1.5 ${i < breadcrumbs.length - 1 ? 'hidden sm:flex' : ''} ${isCurrent ? 'shrink-0' : ''}`}>
+              {i > 0 && <span className="hidden text-ink-300 dark:text-dark-text-soft sm:inline">/</span>}
+              <span className={`truncate ${isCurrent ? 'font-semibold text-ink-900 dark:text-dark-text' : 'text-ink-400 dark:text-dark-text-soft'}`}>
+                {crumb}
+              </span>
             </span>
-          </span>
-        ))}
+          )
+        })}
       </nav>
 
       <SearchBox />
